@@ -1,0 +1,181 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.page?.links_page_title ?: '以站会友'} · ${site.title}|">
+      友链 · Narrate
+    </title>
+  </template>
+
+  <section class="page-hero">
+    <span class="page-hero__glyph" th:text="'友'">友</span>
+    <div class="container">
+      <div class="page-hero__kicker">BLOGROLL · 友情链接</div>
+      <h1 class="page-hero__title" th:text="${theme.config.page?.links_page_title ?: '以站会友'}">
+        以站会友
+      </h1>
+      <p
+        class="page-hero__sub"
+        th:text="${theme.config.page?.links_page_sub ?: '网络时代的君子之交。下面这些站点常年更新、各自生长，是我在互联网上反复回访的地方。'}"
+      ></p>
+    </div>
+  </section>
+
+  <div class="page-wrap container">
+    <div class="link-stats">
+      <span><b></b> 个站点</span>
+      <i></i>
+      <div class="links_sort_menu" th:if="${not #lists.isEmpty(groups)}">
+        <button type="button" class="active" data-filter="all" th:text="'全部'">全部</button>
+        <button
+          type="button"
+          th:each="group : ${groups}"
+          th:attr="data-filter=${group.spec.displayName}"
+          th:text="${group.spec.displayName}"
+        ></button>
+      </div>
+    </div>
+
+    <div class="link-grid" th:if="${not #lists.isEmpty(links)}">
+      <th:block th:each="group : ${groups}">
+        <a
+          class="link-card reveal"
+          th:each="link : ${group.links}"
+          th:href="${link.spec.url}"
+          target="_blank"
+          rel="noopener noreferrer"
+          th:attr="data-name=${link.spec.displayName},data-group=${group.spec.displayName}"
+        >
+          <span class="link-card__index"></span>
+          <span class="link-card__arrow" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M7 17 17 7M8 7h9v9" />
+            </svg>
+          </span>
+          <div class="link-card__head">
+            <img
+              class="link-card__avatar"
+              th:if="${not #strings.isEmpty(link.spec.logo)}"
+              th:src="${link.spec.logo}"
+              th:alt="${link.spec.displayName}"
+              loading="lazy"
+            />
+            <span
+              class="link-card__avatar"
+              th:if="${#strings.isEmpty(link.spec.logo)}"
+              th:text="${#strings.substring(link.spec.displayName, 0, 1)}"
+            ></span>
+            <div class="link-card__intro">
+              <p class="link-card__name" th:text="${link.spec.displayName}">站点</p>
+              <p class="link-card__host"><i></i><span class="js-host"></span></p>
+            </div>
+          </div>
+          <p
+            class="link-card__desc"
+            th:if="${not #strings.isEmpty(link.spec.description)}"
+            th:text="${link.spec.description}"
+          ></p>
+        </a>
+      </th:block>
+    </div>
+
+    <div class="ff-empty" th:if="${#lists.isEmpty(links)}">
+      <b>还没有友链</b>
+      在 Halo Console 的「链接管理」中添加链接后，这里会自动展示。
+    </div>
+
+    <section class="link-apply reveal">
+      <header class="link-apply__head">
+        <p class="page-hero__kicker">EXCHANGE · 申请友链</p>
+        <h2
+          class="link-apply__title"
+          th:text="${theme.config.page?.links_apply_title ?: '交换链接'}"
+        >
+          交换链接
+        </h2>
+        <span class="link-apply__glyph" aria-hidden="true">换</span>
+      </header>
+      <div class="link-apply__grid">
+        <div class="link-apply__col">
+          <h3 class="link-apply__sub" th:text="'本站信息'">本站信息</h3>
+          <ul class="about-info">
+            <li><span class="k">名称</span><span class="v" th:text="${site.title}"></span></li>
+            <li><span class="k">链接</span><span class="v" th:text="${site.url}"></span></li>
+            <li>
+              <span class="k">描述</span
+              ><span
+                class="v"
+                th:text="${#strings.isEmpty(theme.config.brand?.site_slogan) ? (site.subtitle ?: '') : theme.config.brand.site_slogan}"
+              ></span>
+            </li>
+          </ul>
+        </div>
+        <div class="link-apply__col">
+          <h3 class="link-apply__sub" th:text="'申请须知'">申请须知</h3>
+          <!-- SpEL 字符串字面量不支持 \n 转义，分隔符使用源码中的真实换行 -->
+          <ul class="apply-rules">
+            <li
+              th:each="rule : ${#strings.arraySplit(theme.config.page?.links_apply_rules ?: '', '
+')}"
+              th:if="${not #strings.isEmpty(#strings.trim(rule))}"
+              th:text="${#strings.trim(rule)}"
+            ></li>
+          </ul>
+        </div>
+      </div>
+
+      <th:block th:if="${linkApplicationEnabled}">
+        <div class="link-apply__notice" th:if="${param.applied != null}">
+          <b>申请已提交</b>
+          <span
+            th:text="${param.message != null ? param.message[0] : '请等待站长审核，通过后会出现在友链列表中。'}"
+          ></span>
+        </div>
+
+        <form class="link-apply__form" th:action="@{/links/apply/submit}" method="post">
+          <input type="hidden" name="_csrf" th:value="${csrfToken}" />
+          <label>
+            <span>站点名称</span>
+            <input type="text" name="displayName" required maxlength="50" />
+          </label>
+          <label>
+            <span>站点地址</span>
+            <input type="url" name="url" required placeholder="https://" />
+          </label>
+          <label>
+            <span>头像地址</span>
+            <input type="url" name="logo" placeholder="https://" />
+          </label>
+          <label>
+            <span>联系邮箱</span>
+            <input type="email" name="email" required />
+          </label>
+          <label class="link-apply__full">
+            <span>站点描述</span>
+            <textarea name="description" rows="3" required maxlength="200"></textarea>
+          </label>
+          <label class="link-apply__full">
+            <span>验证码</span>
+            <span class="link-apply__captcha">
+              <input type="text" name="captcha" required maxlength="8" autocomplete="off" />
+              <img
+                id="link-application-captcha"
+                th:src="@{/links/apply/captcha}"
+                alt="验证码"
+                title="点击刷新验证码"
+              />
+            </span>
+          </label>
+          <div class="link-apply__actions">
+            <button class="btn-primary" type="submit" th:text="'提交申请'">提交申请</button>
+          </div>
+        </form>
+      </th:block>
+    </section>
+  </div>
+</include>

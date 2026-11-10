@@ -1,0 +1,67 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|朋友圈 · ${site.title}|">朋友圈 · Narrate</title>
+  </template>
+
+  <section class="page-hero">
+    <span class="page-hero__glyph" th:text="'朋'">朋</span>
+    <div class="container">
+      <div class="page-hero__kicker">FRIENDS · 朋友动态</div>
+      <h1 class="page-hero__title" th:text="'朋友最近发布'">朋友最近发布</h1>
+      <p
+        class="page-hero__sub"
+        th:text="${theme.config.page?.friends_page_sub ?: '聚合友站们的新文章，每小时更新一次。他们更新，这里就会动。'}"
+      ></p>
+    </div>
+  </section>
+
+  <div class="page-wrap container">
+    <div class="link-stats">
+      <span><b th:text="${friends.total}">0</b> 条动态</span>
+      <i></i>
+      <span th:text="|第 ${friends.page} / ${friends.totalPages} 页|">第 1 页</span>
+    </div>
+
+    <div class="ff-list" th:if="${not #lists.isEmpty(friends.items)}">
+      <div class="ff-item" th:each="friend : ${friends.items}">
+        <a
+          class="ff-item__site"
+          th:href="${friend.spec.authorUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          th:text="${friend.spec.author}"
+        ></a>
+        <a
+          class="ff-item__title"
+          th:href="${friend.spec.postLink}"
+          target="_blank"
+          rel="noopener noreferrer"
+          th:text="${friend.spec.title}"
+        ></a>
+        <time
+          class="ff-item__date"
+          th:datetime="${friend.spec.pubDate}"
+          th:text="${#temporals.format(friend.spec.pubDate, 'yyyy-MM-dd')}"
+          data-relative
+        ></time>
+      </div>
+    </div>
+
+    <div class="ff-empty" th:if="${#lists.isEmpty(friends.items)}">
+      <b>暂无好友动态</b>
+      请安装并启用「朋友圈」插件，并在插件设置中添加友链 RSS 地址。
+    </div>
+
+    <nav class="page-navigator" th:if="${friends.hasPrevious() or friends.hasNext()}">
+      <ul class="pagination">
+        <li th:if="${friends.hasPrevious()}">
+          <a th:href="@{${friends.prevUrl}}" aria-label="上一页">←</a>
+        </li>
+        <li class="current" th:text="${friends.page}">1</li>
+        <li th:if="${friends.hasNext()}">
+          <a th:href="@{${friends.nextUrl}}" aria-label="下一页">→</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</include>

@@ -1,56 +1,189 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|${post.spec.title} - ${site.title}|">Post Title</title>
-    <script type="module" src="./js/post.ts"></script>
+    <title th:text="|${post.spec.title} · ${site.title}|">文章 · Narrate</title>
+    <link
+      rel="stylesheet"
+      th:if="${theme.config.post?.enable_highlight != false}"
+      th:href="@{/assets/vendor/highlight-github-dark.min.css}"
+    />
   </template>
 
-  <article>
-    <header class="article-header">
-      <h1 class="article-title" th:text="${post.spec.title}"></h1>
-      <div class="article-meta">
-        <time th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}"></time>
-        <span th:if="${not #lists.isEmpty(post.categories)}">
-          &nbsp;·&nbsp;
+  <section class="post-hero">
+    <span class="post-hero__glyph" th:text="${#strings.substring(post.spec.title, 0, 1)}">叙</span>
+    <div class="post-hero__inner container">
+      <div class="post-hero__kicker">
+        <th:block th:if="${not #lists.isEmpty(post.categories)}">
           <a
-            th:each="cat : ${post.categories}"
-            th:href="@{${cat.status.permalink}}"
-            th:text="${cat.spec.displayName}"
-            class="category"
-          ></a>
-        </span>
+            class="cat"
+            th:href="@{${post.categories[0].status.permalink}}"
+            th:text="${post.categories[0].spec.displayName}"
+            >分类</a
+          >
+          <span class="rule"></span>
+          <span class="en" th:text="${#strings.toUpperCase(post.categories[0].spec.slug)}"
+            >CATEGORY</span
+          >
+        </th:block>
+        <!-- 固定文案：未设置分类时的眉题 -->
+        <th:block th:if="${#lists.isEmpty(post.categories)}">
+          <span class="cat" th:text="'文章'">文章</span>
+          <span class="rule"></span>
+          <span class="en" th:text="'POST'">POST</span>
+        </th:block>
       </div>
-    </header>
 
-    <div class="article-content" th:utext="${post.content.content}"></div>
+      <h1 class="post-hero__title" th:text="${post.spec.title}">文章标题</h1>
 
-    <div class="article-tags" th:if="${not #lists.isEmpty(post.tags)}">
-      <a
-        th:each="tag : ${post.tags}"
-        th:href="@{${tag.status.permalink}}"
-        th:text="${tag.spec.displayName}"
-        class="tag"
-      ></a>
+      <div class="post-hero__meta">
+        <span class="who">
+          <img
+            class="avatar"
+            th:if="${not #strings.isEmpty(post.owner?.avatar)}"
+            th:src="${post.owner.avatar}"
+            th:alt="${post.owner?.displayName ?: site.title}"
+          />
+          <!-- 固定回退：作者未设置头像时使用主题内置头像 -->
+          <img
+            class="avatar"
+            th:unless="${not #strings.isEmpty(post.owner?.avatar)}"
+            th:src="@{/assets/images/avatar.jpg}"
+            th:alt="${site.title}"
+          />
+          <b th:text="${post.owner?.displayName ?: site.title}">作者</b>
+        </span>
+        <span class="sep-dot"></span>
+        <time
+          class="mv"
+          th:datetime="${post.spec.publishTime}"
+          th:text="${#temporals.format(post.spec.publishTime, 'yyyy.MM.dd')}"
+        ></time>
+        <span class="sep-dot"></span>
+        <span class="mono" data-read-time-template="约 {n} 分钟" data-read-time>约 1 分钟</span>
+        <th:block th:if="${theme.config.post?.show_views != false}">
+          <span class="sep-dot"></span>
+          <span class="mono" th:text="|${post.stats?.visit ?: 0} 阅读|">0 阅读</span>
+        </th:block>
+      </div>
     </div>
+  </section>
 
-    <nav class="post-nav" th:with="cursor = ${postFinder.cursor(post.metadata.name)}">
-      <span>
-        <a
-          th:if="${cursor.hasPrevious()}"
-          th:href="@{${cursor.previous.status.permalink}}"
-          th:text="|← ${cursor.previous.spec.title}|"
-        ></a>
-      </span>
-      <span>
-        <a
-          th:if="${cursor.hasNext()}"
-          th:href="@{${cursor.next.status.permalink}}"
-          th:text="|${cursor.next.spec.title} →|"
-        ></a>
-      </span>
-    </nav>
-  </article>
+  <div class="container">
+    <!-- 无标题（无目录）的文章收窄居中，避免右侧空白目录栏 -->
+    <div
+      class="post"
+      th:with="hasToc=${theme.config.post?.show_toc != false and (#strings.contains(post.content.content, '<h2') or #strings.contains(post.content.content, '<h3'))}"
+      th:classappend="${hasToc ? '' : 'post--no-toc'}"
+    >
+      <div class="post__main">
+        <article class="post-content" th:utext="${post.content.content}">正文</article>
 
-  <div th:if="${haloCommentEnabled}">
-    <halo:comment group="content.halo.run" kind="Post" th:attr="name=${post.metadata.name}" />
+        <div class="post-tags" th:if="${not #lists.isEmpty(post.tags)}">
+          <span class="post-tags__label" th:text="'标签'">标签</span>
+          <a
+            th:each="tag : ${post.tags}"
+            th:href="@{${tag.status.permalink}}"
+            th:text="${tag.spec.displayName}"
+          ></a>
+        </div>
+
+        <!-- 固定文案：版权说明句式固定，作者 / 时间 / 协议均可由内容与主题设置驱动 -->
+        <div class="post-copyright">
+          <span class="post-copyright__mark">©</span>
+          <p>
+            本文作者
+            <a
+              th:href="@{${post.owner.permalink}}"
+              th:text="${post.owner?.displayName ?: site.title}"
+              >作者</a
+            >， 于
+            <time
+              th:datetime="${post.spec.publishTime}"
+              th:text="${#temporals.format(post.spec.publishTime, 'yyyy 年 MM 月 dd 日')}"
+              >日期</time
+            >
+            发布在 <a th:href="@{/}" th:text="${site.title}">站点</a>。<br />
+            版权协议：
+            <a
+              th:href="${theme.config.post?.license_url ?: 'https://creativecommons.org/licenses/by-nc-sa/4.0/'}"
+              target="_blank"
+              rel="noopener noreferrer"
+              th:text="${theme.config.post?.license_name ?: 'CC BY-NC-SA 4.0'}"
+            ></a
+            >，转载请注明出处。
+          </p>
+        </div>
+
+        <nav class="post-nav" th:with="cursor=${postFinder.cursor(post.metadata.name)}">
+          <a
+            class="post-nav__item"
+            th:if="${cursor.hasPrevious()}"
+            th:href="@{${cursor.previous.status.permalink}}"
+          >
+            <span class="label">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m14 6-6 6 6 6" />
+              </svg>
+              上一篇
+            </span>
+            <span class="nt" th:text="${cursor.previous.spec.title}"></span>
+          </a>
+          <a
+            class="post-nav__item next"
+            th:if="${cursor.hasNext()}"
+            th:href="@{${cursor.next.status.permalink}}"
+          >
+            <span class="label">
+              下一篇
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m10 6 6 6-6 6" />
+              </svg>
+            </span>
+            <span class="nt" th:text="${cursor.next.spec.title}"></span>
+          </a>
+        </nav>
+
+        <section class="comments" id="comments" th:if="${haloCommentEnabled}">
+          <div class="comments__head">
+            <div class="comments__head-text">
+              <span class="comments__no">Ⅲ</span>
+              <h2 class="comments__title" th:text="'评论'">评论</h2>
+              <span class="comments__en" th:text="'Comments'">Comments</span>
+              <span
+                class="comments__no"
+                th:text="|${post.stats?.comment ?: post.status.commentsCount} 条|"
+              ></span>
+            </div>
+            <span class="line"></span>
+          </div>
+          <halo:comment group="content.halo.run" kind="Post" th:attr="name=${post.metadata.name}" />
+        </section>
+        <div class="comments-disabled" th:if="${!haloCommentEnabled}">评论已关闭</div>
+      </div>
+
+      <aside class="toc" id="tocWidget" th:if="${hasToc}">
+        <h3 class="toc__title" th:text="'目录'">目录</h3>
+        <ul class="toc__list" id="tocList"></ul>
+      </aside>
+    </div>
   </div>
+
+  <script
+    defer
+    th:if="${theme.config.post?.enable_highlight != false}"
+    th:src="@{/assets/vendor/highlight.min.js}"
+  ></script>
 </include>

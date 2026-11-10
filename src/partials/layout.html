@@ -1,42 +1,271 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html
+  lang="zh-CN"
+  xmlns:th="http://www.thymeleaf.org"
+  th:with="
+    accent=${theme.config.style?.accent_color ?: '#c2605a'},
+    accentDark=${theme.config.style?.accent_color_dark ?: '#d98a84'},
+    bg=${theme.config.style?.background_color ?: '#fbfbfa'},
+    bgDark=${theme.config.style?.background_color_dark ?: '#121316'},
+    pageWidth=${theme.config.style?.content_width ?: 1180},
+    radius=${theme.config.style?.radius ?: 16},
+    brandGlyph=${theme.config.brand?.hero_glyph ?: '叙'},
+    brandEn=${theme.config.brand?.brand_en ?: 'SERENE'},
+    footerTagline=${theme.config.brand?.footer_tagline ?: 'Narrate · 以文为名'},
+    menu=${menuFinder.getPrimary()}"
+>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <slot name="head">
-      <title th:text="${site.title}">Site Title</title>
-    </slot>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbfbfa" />
+    <!-- 主题设置：颜色 / 宽度 / 圆角。使用比 :root 更高的选择器优先级，保证覆盖样式表默认值 -->
+    <style
+      th:text="|html[data-theme='light'],html:root:not([data-theme='dark']){--accent:${accent};--accent-soft:color-mix(in srgb,var(--accent) 10%,transparent);--accent-line:color-mix(in srgb,var(--accent) 30%,transparent);--bg:${bg};--maxw:${pageWidth}px;--radius:${radius}px}html[data-theme='dark']{--accent:${accentDark};--accent-soft:color-mix(in srgb,var(--accent) 12%,transparent);--accent-line:color-mix(in srgb,var(--accent) 34%,transparent);--bg:${bgDark}}|"
+    ></style>
+    <style
+      th:if="${not #strings.isEmpty(theme.config.style?.font_sans)}"
+      th:text="|:root{--font-sans:'${theme.config.style.font_sans}',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}|"
+    ></style>
+    <script th:inline="javascript">
+      (function () {
+        var mode = /*[[${theme.config.style?.default_mode ?: 'system'}]]*/ "system";
+        var saved = null;
+        try {
+          saved = localStorage.getItem("narrate-theme");
+        } catch (error) {
+          saved = null;
+        }
+        var dark = saved
+          ? saved === "dark"
+          : mode === "dark" ||
+            (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      })();
+    </script>
+    <slot name="head"></slot>
     <script type="module" src="./js/main.ts"></script>
   </head>
-  <body>
+
+  <body th:class="|tpl-${_templateId ?: 'page'}|">
+    <div class="read-progress" id="readProgress"></div>
+
     <header class="site-header">
-      <div class="container">
-        <a class="site-title" th:href="@{/}" th:text="${site.title}">Site Title</a>
-        <nav class="site-nav" th:with="menu = ${menuFinder.getPrimary()}">
-          <ul>
-            <li th:each="item : ${menu.menuItems}">
-              <a
-                th:href="@{${item.status.href}}"
-                th:text="${item.status.displayName}"
-                th:target="${item.spec.target?.value}"
-              ></a>
-            </li>
-          </ul>
+      <div class="site-header__inner container">
+        <a class="brand" th:href="@{/}" th:aria-label="${site.title}">
+          <img
+            class="brand__logo"
+            th:if="${not #strings.isEmpty(site.logo)}"
+            th:src="${site.logo}"
+            th:alt="${site.title}"
+          />
+          <span class="brand__name">
+            <span th:text="${site.title}">Narrate</span>
+            <small th:text="${brandEn}">SERENE</small>
+          </span>
+        </a>
+
+        <nav class="nav" id="nav" aria-label="主导航">
+          <th:block th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}">
+            <a
+              th:each="item : ${menu.menuItems}"
+              th:href="${item.status.href}"
+              th:text="${item.status.displayName}"
+              th:target="${item.spec.target?.value ?: '_self'}"
+              th:classappend="${(item.status.href == '/' and _templateId == 'index') ? 'active' : ''}"
+            ></a>
+          </th:block>
+          <!-- 固定文案：未配置 Halo 菜单时的默认导航 -->
+          <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
+            <a th:href="@{/}" th:text="'首页'"></a>
+            <a th:href="@{${site.routes.archivesUri}}" th:text="'归档'"></a>
+            <a th:href="@{/categories}" th:text="'分类'"></a>
+            <a th:href="@{/tags}" th:text="'标签'"></a>
+          </th:block>
         </nav>
+
+        <div class="header-actions">
+          <button
+            th:if="${pluginFinder.available('PluginSearchWidget')}"
+            class="icon-btn"
+            id="searchBtn"
+            type="button"
+            aria-label="搜索"
+            title="搜索（Ctrl / ⌘ + K）"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </button>
+          <button
+            class="icon-btn"
+            id="themeBtn"
+            type="button"
+            aria-label="切换深浅色"
+            title="切换深浅色"
+          >
+            <svg
+              class="i-sun"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <circle cx="12" cy="12" r="4.2" />
+              <path
+                d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M19.1 4.9l-1.6 1.6M6.5 17.5l-1.6 1.6"
+              />
+            </svg>
+            <svg
+              class="i-moon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="display: none"
+            >
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+            </svg>
+          </button>
+          <button
+            class="icon-btn nav-toggle"
+            id="navToggle"
+            type="button"
+            aria-label="菜单"
+            aria-expanded="false"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <main class="site-main">
-      <div class="container">
-        <slot />
-      </div>
+    <main>
+      <slot></slot>
     </main>
 
     <footer class="site-footer">
-      <div class="container">
-        <p th:text="${theme.config.basic.custom_footer ?: site.title}"></p>
-        <halo:footer />
+      <div class="footer-grid container">
+        <div class="footer-col footer-col--brand">
+          <a class="footer-brand" th:href="@{/}">
+            <span class="footer-brand__glyph" th:text="${brandGlyph}">叙</span>
+            <span class="footer-brand__name">
+              <span th:text="${site.title}">Narrate</span>
+              <small th:text="${brandEn}">SERENE</small>
+            </span>
+          </a>
+          <p th:text="${footerTagline}">Narrate · 以文为名</p>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col__title" th:text="'导航'">导航</h3>
+          <ul class="footer-links">
+            <li
+              th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}"
+              th:each="item : ${menu.menuItems}"
+            >
+              <a th:href="${item.status.href}" th:text="${item.status.displayName}"></a>
+            </li>
+            <!-- 固定文案：默认页脚导航 -->
+            <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
+              <li><a th:href="@{/}" th:text="'首页'"></a></li>
+              <li><a th:href="@{${site.routes.archivesUri}}" th:text="'归档'"></a></li>
+              <li><a th:href="@{/tags}" th:text="'标签'"></a></li>
+            </th:block>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h3 class="footer-col__title" th:text="'分类'">分类</h3>
+          <ul class="footer-links">
+            <li
+              th:each="cat, catStat : ${categoryFinder.listAll()}"
+              th:if="${catStat.index < 6 and cat.postCount > 0}"
+            >
+              <a th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"></a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 友链仅来自「链接管理」插件，未安装插件时不展示该列 -->
+        <div class="footer-col" th:if="${pluginFinder.available('PluginLinks')}">
+          <h3 class="footer-col__title" th:text="'友链'">友链</h3>
+          <ul class="footer-links">
+            <li th:each="link : ${linkFinder.random(theme.config.links?.footer_links_limit ?: 8)}">
+              <a
+                th:href="${link.spec.url}"
+                th:text="${link.spec.displayName}"
+                target="_blank"
+                rel="noopener noreferrer"
+                ><i></i
+              ></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom container">
+        <div class="footer-bottom__copy">
+          <span>
+            © <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span>
+            <a th:href="@{/}" th:text="${site.title}"></a>
+          </span>
+          <th:block th:if="${not #strings.isEmpty(theme.config.links?.footer_copyright)}">
+            <span class="sep"></span>
+            <span th:text="${theme.config.links.footer_copyright}"></span>
+          </th:block>
+        </div>
+        <div class="footer-beian">
+          <!-- 固定文案：页脚驱动信息（不提供自定义配置） -->
+          <span>Powered by Halo · Theme Narrate · 叙</span>
+          <a
+            th:if="${not #strings.isEmpty(theme.config.links?.beian_icp)}"
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            th:text="${theme.config.links.beian_icp}"
+          ></a>
+          <a
+            th:if="${not #strings.isEmpty(theme.config.links?.police_icp)}"
+            href="https://beian.mps.gov.cn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            th:text="${theme.config.links.police_icp}"
+          ></a>
+        </div>
       </div>
     </footer>
+
+    <button class="to-top" id="toTop" type="button" aria-label="返回顶部">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m6 14 6-6 6 6" />
+      </svg>
+    </button>
+
+    <halo:footer />
   </body>
 </html>

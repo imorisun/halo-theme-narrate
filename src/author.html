@@ -1,0 +1,98 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${author.spec.displayName} · ${site.title}|">作者 · Narrate</title>
+  </template>
+
+  <section class="page-hero author-hero">
+    <span class="page-hero__glyph" th:text="${#strings.substring(author.spec.displayName, 0, 1)}"
+      >作</span
+    >
+    <div class="container">
+      <div class="page-hero__kicker">AUTHOR · 作者</div>
+      <div class="author-hero__head">
+        <img
+          class="author-hero__avatar"
+          th:if="${not #strings.isEmpty(author.spec.avatar)}"
+          th:src="${author.spec.avatar}"
+          th:alt="${author.spec.displayName}"
+          loading="lazy"
+        />
+        <div>
+          <h1 class="page-hero__title" th:text="${author.spec.displayName}">作者</h1>
+          <p
+            class="page-hero__sub"
+            th:if="${not #strings.isEmpty(author.spec.bio)}"
+            th:text="${author.spec.bio}"
+          ></p>
+        </div>
+      </div>
+      <div class="arc-total">
+        <span>共</span>
+        <b th:text="${posts.total}">0</b>
+        <span>篇文章</span>
+        <span class="sep">·</span>
+        <span th:text="|第 ${posts.page} / ${posts.totalPages} 页|">第 1 页</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout container">
+    <main class="cat-list">
+      <a
+        class="cat-row"
+        th:each="post, iterStat : ${posts.items}"
+        th:href="@{${post.status.permalink}}"
+        th:with="cover=${not #strings.isEmpty(post.spec.cover) ? post.spec.cover : (theme.config.style?.default_cover ?: '')},
+                 phClass=${'ph--' + #strings.arraySplit('a,b,c,d,e', ',')[iterStat.index % 5]}"
+      >
+        <span class="cat-row__index" th:text="${#numbers.formatInteger(iterStat.index + 1, 2)}"
+          >01</span
+        >
+        <div class="cat-row__body">
+          <h2 class="cat-row__title" th:text="${post.spec.title}"></h2>
+          <p class="cat-row__excerpt" th:text="${post.status.excerpt}"></p>
+          <div class="cat-row__meta">
+            <time
+              th:datetime="${post.spec.publishTime}"
+              th:text="${#temporals.format(post.spec.publishTime, 'yyyy.MM.dd')}"
+            ></time>
+            <span
+              th:if="${not #lists.isEmpty(post.categories)}"
+              th:text="| · ${post.categories[0].spec.displayName}|"
+            ></span>
+          </div>
+        </div>
+        <span class="cat-row__thumb">
+          <img
+            th:if="${not #strings.isEmpty(cover)}"
+            th:src="${cover}"
+            th:alt="${post.spec.title}"
+            loading="lazy"
+          />
+          <span th:if="${#strings.isEmpty(cover)}" class="ph" th:classappend="${phClass}">
+            <span class="ph__char" th:text="${#strings.substring(post.spec.title, 0, 1)}"></span>
+          </span>
+        </span>
+      </a>
+
+      <div class="ff-empty" th:if="${#lists.isEmpty(posts.items)}">
+        <b>这位作者还没有文章</b>
+        稍后再来看看。
+      </div>
+
+      <nav class="page-navigator" th:if="${posts.hasPrevious() or posts.hasNext()}">
+        <ul class="pagination">
+          <li th:if="${posts.hasPrevious()}">
+            <a th:href="@{${posts.prevUrl}}" aria-label="上一页">←</a>
+          </li>
+          <li class="current" th:text="${posts.page}">1</li>
+          <li th:if="${posts.hasNext()}">
+            <a th:href="@{${posts.nextUrl}}" aria-label="下一页">→</a>
+          </li>
+        </ul>
+      </nav>
+    </main>
+
+    <include src="sidebar.html" />
+  </div>
+</include>

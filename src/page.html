@@ -1,20 +1,53 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|${singlePage.spec.title} - ${site.title}|">Page Title</title>
+    <title th:text="|${singlePage.spec.title} · ${site.title}|">页面 · Narrate</title>
   </template>
 
-  <article>
-    <header class="article-header">
-      <h1 class="article-title" th:text="${singlePage.spec.title}"></h1>
-    </header>
-    <div class="article-content" th:utext="${singlePage.content.content}"></div>
-  </article>
+  <th:block th:with="isGuestbook=${singlePage.spec.slug == 'guestbook'}">
+    <section class="page-hero">
+      <span class="page-hero__glyph" th:text="${#strings.substring(singlePage.spec.title, 0, 1)}"
+        >页</span
+      >
+      <div class="container">
+        <div
+          class="page-hero__kicker"
+          th:text="${isGuestbook ? 'GUESTBOOK · 留言板' : 'PAGE · 页面'}"
+        >
+          PAGE · 页面
+        </div>
+        <h1 class="page-hero__title" th:text="${singlePage.spec.title}">页面标题</h1>
+        <p
+          class="page-hero__sub"
+          th:if="${isGuestbook or not #strings.isEmpty(singlePage.status.excerpt)}"
+          th:text="${isGuestbook ? (theme.config.page?.guestbook_intro ?: '说点什么吧——交流、指正、打个招呼，都可以。') : singlePage.status.excerpt}"
+        ></p>
+      </div>
+    </section>
 
-  <div th:if="${haloCommentEnabled}">
-    <halo:comment
-      group="content.halo.run"
-      kind="SinglePage"
-      th:attr="name=${singlePage.metadata.name}"
-    />
-  </div>
+    <div class="page-wrap container">
+      <article class="post-content" th:utext="${singlePage.content.content}">页面内容</article>
+
+      <section class="comments" id="comments" th:if="${haloCommentEnabled}">
+        <div class="comments__head">
+          <div class="comments__head-text">
+            <span class="comments__no">Ⅲ</span>
+            <h2 class="comments__title" th:text="${isGuestbook ? '留言' : '评论'}">评论</h2>
+            <span class="comments__en" th:text="${isGuestbook ? 'Guestbook' : 'Comments'}"
+              >Comments</span
+            >
+            <span
+              class="comments__no"
+              th:text="|${singlePage.stats?.comment ?: singlePage.status.commentsCount} 条|"
+            ></span>
+          </div>
+          <span class="line"></span>
+        </div>
+        <halo:comment
+          group="content.halo.run"
+          kind="SinglePage"
+          th:attr="name=${singlePage.metadata.name}"
+        />
+      </section>
+    </div>
+  </th:block>
 </include>

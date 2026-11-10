@@ -1,13 +1,87 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|${tag.spec.displayName} - ${site.title}|">Tag Archive</title>
+    <title th:text="|${tag.spec.displayName} · ${site.title}|">标签 · Narrate</title>
   </template>
 
-  <h1 th:text="|Tag: ${tag.spec.displayName}|"></h1>
+  <section class="cat-hero">
+    <span class="page-hero__glyph" th:text="${#strings.substring(tag.spec.displayName, 0, 1)}"
+      >标</span
+    >
+    <div class="container">
+      <div class="cat-hero__title">
+        <span th:text="${tag.spec.displayName}">标签</span>
+        <em class="cat-hero__en" th:text="${#strings.toUpperCase(tag.spec.slug)}">TAG</em>
+      </div>
+      <div class="cat-hero__meta">
+        <span>共</span>
+        <b th:text="${posts.total}">0</b>
+        <span>篇文章</span>
+        <span class="sep">·</span>
+        <span th:text="|第 ${posts.page} / ${posts.totalPages} 页|">第 1 页</span>
+      </div>
+      <!-- 固定文案：Halo 标签没有描述字段，统一使用此说明 -->
+      <p class="page-hero__sub" th:text="'同一标签下的全部文字，按发布时间倒序排列。'"></p>
+    </div>
+  </section>
 
-  <ul class="post-list">
-    <include src="post-card.html"></include>
-  </ul>
+  <div class="layout container">
+    <main class="cat-list">
+      <a
+        class="cat-row"
+        th:each="post, iterStat : ${posts.items}"
+        th:href="@{${post.status.permalink}}"
+        th:with="cover=${not #strings.isEmpty(post.spec.cover) ? post.spec.cover : (theme.config.style?.default_cover ?: '')},
+                 phClass=${'ph--' + #strings.arraySplit('a,b,c,d,e', ',')[iterStat.index % 5]}"
+      >
+        <span class="cat-row__index" th:text="${#numbers.formatInteger(iterStat.index + 1, 2)}"
+          >01</span
+        >
+        <div class="cat-row__body">
+          <h2 class="cat-row__title" th:text="${post.spec.title}"></h2>
+          <p class="cat-row__excerpt" th:text="${post.status.excerpt}"></p>
+          <div class="cat-row__meta">
+            <time
+              th:datetime="${post.spec.publishTime}"
+              th:text="${#temporals.format(post.spec.publishTime, 'yyyy.MM.dd')}"
+            ></time>
+            <span
+              th:if="${theme.config.post?.show_views != false}"
+              th:text="| · ${post.stats?.visit ?: 0} 阅读|"
+            ></span>
+          </div>
+        </div>
+        <span class="cat-row__thumb">
+          <img
+            th:if="${not #strings.isEmpty(cover)}"
+            th:src="${cover}"
+            th:alt="${post.spec.title}"
+            loading="lazy"
+          />
+          <span th:if="${#strings.isEmpty(cover)}" class="ph" th:classappend="${phClass}">
+            <span class="ph__tag" th:text="${tag.spec.displayName}"></span>
+            <span class="ph__char" th:text="${#strings.substring(post.spec.title, 0, 1)}"></span>
+          </span>
+        </span>
+      </a>
 
-  <include src="pagination.html"></include>
+      <div class="ff-empty" th:if="${#lists.isEmpty(posts.items)}">
+        <b>这个标签下还没有文章</b>
+        换一个标签看看，或稍后再来。
+      </div>
+
+      <nav class="page-navigator" th:if="${posts.hasPrevious() or posts.hasNext()}">
+        <ul class="pagination">
+          <li th:if="${posts.hasPrevious()}">
+            <a th:href="@{${posts.prevUrl}}" aria-label="上一页">←</a>
+          </li>
+          <li class="current" th:text="${posts.page}">1</li>
+          <li th:if="${posts.hasNext()}">
+            <a th:href="@{${posts.nextUrl}}" aria-label="下一页">→</a>
+          </li>
+        </ul>
+      </nav>
+    </main>
+
+    <include src="sidebar.html" />
+  </div>
 </include>

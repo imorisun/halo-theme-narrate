@@ -1,13 +1,285 @@
 apiVersion: v1alpha1
 kind: Setting
 metadata:
-  name: theme-vite-starter-setting
+  name: narrate-setting
 spec:
   forms:
-    - group: styles
-      label: 样式
+    - group: brand
+      label: 品牌与首屏
       formSchema:
+        - $formkit: text
+          name: site_slogan
+          label: 站点标语
+          help: 首页首屏简介与页脚品牌简介。留空时优先使用 Halo 系统设置中的站点副标题。
+          value: ""
+        - $formkit: text
+          name: brand_en
+          label: 品牌英文后缀
+          help: 页头品牌名右侧的小号英文，默认 SERENE。
+          value: "SERENE"
+        - $formkit: text
+          name: footer_tagline
+          label: 页脚品牌副标题
+          value: "Narrate · 以文为名"
+        - $formkit: text
+          name: hero_glyph
+          label: 首屏背景巨字
+          value: "叙"
+        - $formkit: text
+          name: hero_kicker
+          label: 首屏眉题
+          value: "叙 · 个人博客"
+        - $formkit: text
+          name: hero_statement
+          label: 首屏主张句
+          help: 使用 {rot} 标记旋转词的位置，例如：在喧嚣里，留一处{rot}。
+          value: "在喧嚣里，留一处{rot}。"
+        - $formkit: textarea
+          name: hero_rot_words
+          label: 首屏旋转词
+          help: 每行一条，按回车分隔，依次轮播。
+          value: |-
+            笔墨栖居地
+            思想避风港
+            文字小天地
+            心灵自留地
+
+    - group: home
+      label: 首页模块
+      formSchema:
+        - $formkit: switch
+          name: enable_moments
+          label: 启用瞬间
+          help: 由「瞬间」插件提供数据，需先安装并启用插件；关闭后首页不显示瞬间区块。
+          value: true
+        - $formkit: number
+          name: moment_limit
+          label: 瞬间展示数量
+          value: 6
+          min: 1
+          max: 20
+        - $formkit: textarea
+          name: category_exclude_slugs
+          label: 分类导览排除的分类
+          help: 每行一个分类缩略名，按回车分隔，例如 gallery。
+          value: "gallery"
+        - $formkit: textarea
+          name: greetings
+          label: 时段问候语
+          help: 依次为早晨、午间、下午、夜晚、深夜，每行一条，按回车分隔。
+          value: |-
+            早安，新的一天。
+            午安，记得好好吃饭。
+            下午好，慢慢来。
+            夜色温柔，适合写字。
+            夜深了，写点什么吧。
+        - $formkit: text
+          name: featured_flag
+          label: 焦点图角标
+          value: "置顶精选"
+        - $formkit: text
+          name: picks_title
+          label: 荐读标题
+          value: "编辑荐读"
+        - $formkit: text
+          name: picks_en
+          label: 荐读英文副题
+          value: "Editor’s Picks"
+        - $formkit: select
+          name: picks_sort
+          label: 荐读排序方式
+          help: 留空时默认按内容阅读量从高到低展示。
+          value: ""
+          options:
+            - label: 阅读量降序（默认）
+              value: ""
+            - label: 最新发布
+              value: latest
+            - label: 置顶优先
+              value: pinned
+        - $formkit: number
+          name: picks_limit
+          label: 荐读展示数量
+          value: 4
+          min: 1
+          max: 10
+        - $formkit: text
+          name: moments_title
+          label: 瞬间标题
+          value: "瞬间"
+        - $formkit: text
+          name: moments_en
+          label: 瞬间英文副题
+          value: "Moments"
+        - $formkit: text
+          name: moments_sub
+          label: 瞬间副标题
+          value: "一些零碎的当下"
+        - $formkit: text
+          name: cat_more_text
+          label: 分类导览更多按钮
+          value: "查看全部"
+        - $formkit: text
+          name: cat_default_desc
+          label: 分类无描述时的占位文案
+          value: "收录这一类下的文字。"
+        - $formkit: text
+          name: posts_anchor_text
+          label: 首屏「开始阅读」按钮文案
+          value: "开始阅读"
+        - $formkit: text
+          name: archives_text
+          label: 首屏「归档全部」按钮文案
+          value: "归档全部"
+
+    - group: post
+      label: 文章与阅读
+      formSchema:
+        - $formkit: switch
+          name: show_toc
+          label: 显示文章目录
+          value: true
+        - $formkit: switch
+          name: enable_highlight
+          label: 启用代码高亮
+          help: 使用主题内置的 highlight.js（本地资源，不依赖 CDN）。
+          value: true
+        - $formkit: switch
+          name: show_views
+          label: 显示阅读量
+          help: 阅读量来自 Halo 内置的访问统计。
+          value: true
+        - $formkit: text
+          name: license_name
+          label: 版权协议名称
+          value: "CC BY-NC-SA 4.0"
+        - $formkit: text
+          name: license_url
+          label: 版权协议链接
+          value: "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+
+    - group: links
+      label: 链接与页脚
+      formSchema:
+        - $formkit: number
+          name: footer_links_limit
+          label: 页脚友链随机展示数量
+          help: 仅在安装并启用「链接管理」插件后生效。
+          value: 8
+          min: 1
+          max: 20
+        - $formkit: text
+          name: beian_icp
+          label: ICP 备案号
+          help: 如：京ICP备12345678号-1。
+          value: ""
+        - $formkit: text
+          name: police_icp
+          label: 公安备案号
+          help: 如：京公网安备11000000000000号。
+          value: ""
+        - $formkit: text
+          name: footer_copyright
+          label: 页脚附加版权信息
+          value: ""
+
+    - group: page
+      label: 页面文案
+      formSchema:
+        - $formkit: text
+          name: about_avatar
+          label: 关于页头像
+          help: 填写图片地址；留空使用主题内置头像。
+          value: ""
+        - $formkit: text
+          name: about_role
+          label: 关于页身份标签
+          value: "WRITER · DESIGNER"
+        - $formkit: text
+          name: about_intro
+          label: 关于页副标题
+          value: "写作，是为了让不可见的可见；极简，是为了让可见的更清晰。"
+        - $formkit: text
+          name: about_contact
+          label: 关于页联系邮箱
+          value: ""
+        - $formkit: text
+          name: guestbook_intro
+          label: 留言板副标题
+          value: "说点什么吧——交流、指正、打个招呼，都可以。"
+        - $formkit: text
+          name: links_page_title
+          label: 友链页标题
+          value: "以站会友"
+        - $formkit: text
+          name: links_page_sub
+          label: 友链页副标题
+          value: "网络时代的君子之交。下面这些站点常年更新、各自生长，是我在互联网上反复回访的地方。"
+        - $formkit: text
+          name: links_apply_title
+          label: 友链申请区标题
+          value: "交换链接"
+        - $formkit: textarea
+          name: links_apply_rules
+          label: 友链申请须知
+          help: 每行一条，按回车分隔。
+          value: "原创内容为主的独立阅读\n保持活跃，三个月内仍有更新\n无违法违规与 spam 内容\n请先添加本站链接，再通过留言板或邮件告知，通过后我会尽快回链"
+        - $formkit: text
+          name: friends_page_sub
+          label: 朋友圈页副标题
+          value: "聚合友站们的新文章，每小时更新一次。他们更新，这里就会动。"
+
+    - group: style
+      label: 外观
+      formSchema:
+        - $formkit: radio
+          name: default_mode
+          label: 默认配色
+          help: 「跟随系统」会在首次访问时按系统偏好选择深浅色，访客手动切换后以本地记录为准。
+          value: system
+          options:
+            - label: 跟随系统
+              value: system
+            - label: 浅色
+              value: light
+            - label: 深色
+              value: dark
+        - $formkit: color
+          name: accent_color
+          label: 浅色模式强调色
+          value: "#c2605a"
+        - $formkit: color
+          name: accent_color_dark
+          label: 深色模式强调色
+          value: "#d98a84"
         - $formkit: color
           name: background_color
-          label: 背景颜色
-          value: "#f2f2f2"
+          label: 浅色模式背景色
+          value: "#fbfbfa"
+        - $formkit: color
+          name: background_color_dark
+          label: 深色模式背景色
+          value: "#121316"
+        - $formkit: number
+          name: content_width
+          label: 页面最大宽度（px）
+          help: 控制页头、页脚与列表页的整体容器宽度；正文阅读宽度由主题固定为 720px。
+          value: 1180
+          min: 960
+          max: 1600
+        - $formkit: number
+          name: radius
+          label: 卡片圆角（px）
+          value: 16
+          min: 0
+          max: 32
+        - $formkit: text
+          name: font_sans
+          label: 正文字体
+          help: 留空使用主题默认字体栈；可填写系统已安装字体名称。
+          value: ""
+        - $formkit: text
+          name: default_cover
+          label: 默认封面图
+          help: 文章未设置封面时使用；留空显示主题的纯色占位图。
+          value: ""

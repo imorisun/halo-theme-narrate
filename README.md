@@ -1,8 +1,16 @@
-# Theme Vite Starter
+# Narrate · 叙
 
-面向 [Halo](https://www.halo.run/) 的主题脚手架：在 `src/` 中编写模板与前端资源，经构建生成 Halo 实际读取的 `templates/` 目录。
+移植自 Typecho 主题 Narrate · 叙的 Halo 2 主题：简约、优雅、阅读优先的编辑杂志风博客主题，支持深色模式、首页精选、瞬间、分类导览、文章目录，以及链接/朋友圈/搜索插件页面。
 
-官方主题开发指南：<https://docs.halo.run/developer-guide/theme/prepare>
+- 移植说明与配置项文档：[MIGRATION.md](./MIGRATION.md)
+- 官方主题开发指南：<https://docs.halo.run/developer-guide/theme/prepare>
+
+## 快速开始
+
+```bash
+pnpm install
+pnpm build   # 生成 templates/ 与 dist/halo-theme-narrate-1.0.0.zip
+```
 
 ## 技术栈
 

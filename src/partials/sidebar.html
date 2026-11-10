@@ -1,0 +1,97 @@
+<aside
+  class="sidebar"
+  th:with="popular=${postFinder.list(1, 5)}, sitePostCount=${postFinder.list(1, 1).total}"
+>
+  <div class="widget">
+    <h3 class="widget__title" th:text="'热门文章'">热门文章</h3>
+    <div class="widget-card">
+      <!-- 固定文案：Halo Finder 暂不支持按访问量排序，此处展示最新文章 -->
+      <a class="link-item" th:each="item : ${popular.items}" th:href="@{${item.status.permalink}}">
+        <div>
+          <div class="link-item__name" th:text="${item.spec.title}"></div>
+          <div class="link-item__desc">
+            <time
+              th:datetime="${item.spec.publishTime}"
+              th:text="${#temporals.format(item.spec.publishTime, 'yyyy.MM.dd')}"
+            ></time>
+            <span
+              th:if="${theme.config.post?.show_views != false}"
+              th:text="| · ${item.stats?.visit ?: 0} 阅读|"
+            ></span>
+          </div>
+        </div>
+      </a>
+      <div class="ff-empty" th:if="${#lists.isEmpty(popular.items)}">
+        <b>暂无文章</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <h3 class="widget__title" th:text="'标签云'">标签云</h3>
+    <div class="widget-card">
+      <div class="tag-cloud">
+        <a
+          th:each="tag, tagStat : ${tagFinder.listAll()}"
+          th:if="${tagStat.index < 24}"
+          th:href="@{${tag.status.permalink}}"
+          th:text="${tag.spec.displayName}"
+        ></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 友情链接仅来自「链接管理」插件，未安装插件时不展示该组件 -->
+  <div class="widget" th:if="${pluginFinder.available('PluginLinks')}">
+    <h3 class="widget__title" th:text="'友情链接'">友情链接</h3>
+    <div class="widget-card">
+      <a
+        class="link-item"
+        th:each="link : ${linkFinder.random(6)}"
+        th:href="${link.spec.url}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          class="link-item__avatar"
+          th:if="${not #strings.isEmpty(link.spec.logo)}"
+          th:src="${link.spec.logo}"
+          th:alt="${link.spec.displayName}"
+          loading="lazy"
+        />
+        <div>
+          <div class="link-item__name" th:text="${link.spec.displayName}"></div>
+          <div
+            class="link-item__desc"
+            th:if="${not #strings.isEmpty(link.spec.description)}"
+            th:text="${link.spec.description}"
+          ></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="widget">
+    <h3 class="widget__title" th:text="'站点统计'">站点统计</h3>
+    <div class="widget-card">
+      <ul class="about-info">
+        <li>
+          <span class="k">文章</span>
+          <span class="v" th:text="${sitePostCount}">0</span>
+        </li>
+        <li>
+          <span class="k">分类</span>
+          <span class="v" th:text="${#lists.size(categoryFinder.listAll())}">0</span>
+        </li>
+        <li>
+          <span class="k">标签</span>
+          <span class="v" th:text="${#lists.size(tagFinder.listAll())}">0</span>
+        </li>
+        <li>
+          <span class="k">驱动</span>
+          <span class="v" th:text="|Halo ${site.version}|">Halo</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</aside>

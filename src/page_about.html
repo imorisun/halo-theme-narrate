@@ -1,0 +1,119 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${singlePage.spec.title} · ${site.title}|">关于 · Narrate</title>
+  </template>
+
+  <section class="page-hero">
+    <span class="page-hero__glyph" th:text="${#strings.substring(singlePage.spec.title, 0, 1)}"
+      >关</span
+    >
+    <div class="container">
+      <div class="page-hero__kicker">ABOUT · 关于</div>
+      <h1 class="page-hero__title" th:text="${singlePage.spec.title}">关于</h1>
+      <p
+        class="page-hero__sub"
+        th:text="${theme.config.page?.about_intro ?: '写作，是为了让不可见的可见；极简，是为了让可见的更清晰。'}"
+      ></p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="about-grid">
+      <aside class="about-card">
+        <img
+          class="about-card__avatar"
+          th:if="${not #strings.isEmpty(theme.config.page?.about_avatar)}"
+          th:src="${theme.config.page.about_avatar}"
+          th:alt="${site.title}"
+        />
+        <!-- 固定回退：未配置关于页头像时使用主题内置头像 -->
+        <img
+          class="about-card__avatar"
+          th:unless="${not #strings.isEmpty(theme.config.page?.about_avatar)}"
+          th:src="@{/assets/images/avatar.jpg}"
+          th:alt="${site.title}"
+        />
+        <h2 class="about-card__name" th:text="${site.title}">Narrate</h2>
+        <div
+          class="about-card__role"
+          th:text="${theme.config.page?.about_role ?: 'WRITER · DESIGNER'}"
+        >
+          WRITER · DESIGNER
+        </div>
+        <p
+          class="about-card__desc"
+          th:text="${#strings.isEmpty(theme.config.brand?.site_slogan) ? (site.subtitle ?: '一方文字自留地，记录生活、阅读与随想。') : theme.config.brand.site_slogan}"
+        ></p>
+      </aside>
+
+      <div>
+        <div class="stat-grid">
+          <div class="stat-cell">
+            <b
+              th:attr="data-count=${postFinder.list(1, 1).total}"
+              th:text="${postFinder.list(1, 1).total}"
+              >0</b
+            >
+            <span>篇文章</span>
+          </div>
+          <div class="stat-cell">
+            <b
+              th:attr="data-count=${#lists.size(categoryFinder.listAll())}"
+              th:text="${#lists.size(categoryFinder.listAll())}"
+              >0</b
+            >
+            <span>个分类</span>
+          </div>
+          <div class="stat-cell">
+            <b
+              th:attr="data-count=${#lists.size(tagFinder.listAll())}"
+              th:text="${#lists.size(tagFinder.listAll())}"
+              >0</b
+            >
+            <span>个标签</span>
+          </div>
+          <div class="stat-cell">
+            <b
+              th:attr="data-count=${pluginFinder.available('PluginLinks') ? linkFinder.count() : 0}"
+              th:text="${pluginFinder.available('PluginLinks') ? linkFinder.count() : 0}"
+              >0</b
+            >
+            <span>位朋友</span>
+          </div>
+        </div>
+
+        <ul class="about-info">
+          <li>
+            <span class="k">站点</span>
+            <span class="v" th:text="${site.title}">Narrate</span>
+          </li>
+          <li>
+            <span class="k">网址</span>
+            <span class="v"
+              ><a th:href="${site.url}" th:text="${site.url}" target="_blank" rel="noopener"></a
+            ></span>
+          </li>
+          <li th:if="${not #strings.isEmpty(theme.config.page?.about_contact)}">
+            <span class="k">邮箱</span>
+            <span class="v"
+              ><a
+                th:href="|mailto:${theme.config.page.about_contact}|"
+                th:text="${theme.config.page.about_contact}"
+              ></a
+            ></span>
+          </li>
+          <li>
+            <span class="k">驱动</span>
+            <span class="v" th:text="|Halo ${site.version}|">Halo</span>
+          </li>
+          <li>
+            <span class="k">主题</span>
+            <span class="v" th:text="|Narrate · 叙 v${theme.spec.version}|">Narrate · 叙</span>
+          </li>
+        </ul>
+
+        <article class="post-content" th:utext="${singlePage.content.content}">关于正文</article>
+      </div>
+    </div>
+  </div>
+</include>
