@@ -1,21 +1,21 @@
 apiVersion: theme.halo.run/v1alpha1
 kind: Theme
 metadata:
-  name: theme-vite-starter
+  name: halo-theme-narrate
 spec:
-  displayName: Vite Starter
+  displayName: Narrate
   author:
-    name: Halo
-    website: https://github.com/halo-dev
+    name: 晨阳
+    website: https://www.puresky.top/
   description: A development starter theme with Vite Ecosystem for Halo
   logo: https://www.halo.run/logo
-  homepage: https://github.com/halo-dev/theme-vite-starter#readme
-  repo: https://github.com/halo-dev/theme-vite-starter
-  issues: https://github.com/halo-dev/theme-vite-starter/issues
-  settingName: "theme-vite-starter-setting"
-  configMapName: "theme-vite-starter-configMap"
+  homepage: https://github.com/imorisun/halo-theme-narrate#readme
+  repo: https://github.com/imorisun/halo-theme-narrate
+  issues: https://github.com/imorisun/halo-theme-narrate/issues
+  settingName: "narrate-setting"
+  configMapName: "narrate-configMap"
   version: 1.0.0
   requires: ">=2.0.0"
   license:
     - name: "GPL-3.0"
-      url: "https://github.com/halo-dev/theme-vite-starter/blob/main/LICENSE"
+      url: "https://github.com/imorisun/halo-theme-narrate/blob/main/LICENSE"
