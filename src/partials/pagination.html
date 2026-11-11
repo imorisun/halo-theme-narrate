@@ -1,0 +1,102 @@
+<!--
+  通用分页导航（构建期由 include 内联到各列表页）
+
+  调用方需在 include 外层通过 th:with 提供：
+    pager     — Halo 的 UrlContextListResult（posts / archives / friends 等）
+    pagerBase — 列表第 1 页的根路径（不含 context path），如 /、/categories/foo、/archives
+
+  规则：
+    · 总页数 ≤ 5：显示全部页码
+    · 总页数 > 5：首末页常驻，当前页相邻窗口 3~5 个页码，其余用省略号折叠
+    · 第 1 页使用列表基址，其余页码为 base + /page/{n}
+-->
+<nav
+  class="page-navigator"
+  th:if="${pager != null and pager.totalPages > 1}"
+  th:with="
+    total=${pager.totalPages},
+    current=${pager.page},
+    windowStart=${pager.totalPages <= 5 ? 1 : (pager.page <= 3 ? 1 : (pager.page >= pager.totalPages - 2 ? pager.totalPages - 4 : pager.page - 1))},
+    windowEnd=${pager.totalPages <= 5 ? pager.totalPages : (pager.page <= 3 ? 5 : (pager.page >= pager.totalPages - 2 ? pager.totalPages : pager.page + 1))},
+    pageBase=${#strings.endsWith(pagerBase, '/') ? pagerBase : pagerBase + '/'}"
+  aria-label="分页导航"
+>
+  <ul class="pagination">
+    <!-- 首页 -->
+    <li class="pager-step pager-edge" th:classappend="${current <= 1} ? 'disabled' : ''">
+      <a th:if="${current > 1}" th:href="@{${pagerBase}}" rel="first" title="首页" aria-label="首页"
+        >«</a
+      >
+      <span th:unless="${current > 1}" aria-hidden="true">«</span>
+    </li>
+    <!-- 上一页 -->
+    <li class="pager-step" th:classappend="${!pager.hasPrevious()} ? 'disabled' : ''">
+      <a
+        th:if="${pager.hasPrevious()}"
+        th:href="@{${pager.prevUrl}}"
+        rel="prev"
+        title="上一页"
+        aria-label="上一页"
+        >←</a
+      >
+      <span th:unless="${pager.hasPrevious()}" aria-hidden="true">←</span>
+    </li>
+
+    <!-- 折叠的前半段 -->
+    <li th:if="${windowStart > 1}">
+      <a th:href="@{${pagerBase}}" th:title="'第 1 页'" th:aria-label="'第 1 页'">1</a>
+    </li>
+    <li class="ellipsis" th:if="${windowStart > 2}" aria-hidden="true">…</li>
+
+    <!-- 当前页及相邻页码 -->
+    <li
+      th:each="n : ${#numbers.sequence(windowStart, windowEnd)}"
+      th:classappend="${n == current} ? 'current' : ''"
+    >
+      <span th:if="${n == current}" th:text="${n}" aria-current="page"></span>
+      <a
+        th:unless="${n == current}"
+        th:href="@{${n == 1 ? pagerBase : pageBase + 'page/' + n}}"
+        th:title="${'第 ' + n + ' 页'}"
+        th:aria-label="${'第 ' + n + ' 页'}"
+        th:text="${n}"
+      ></a>
+    </li>
+
+    <!-- 折叠的后半段 -->
+    <li class="ellipsis" th:if="${windowEnd < total - 1}" aria-hidden="true">…</li>
+    <li th:if="${windowEnd < total}">
+      <a
+        th:href="@{${pageBase + 'page/' + total}}"
+        th:title="${'第 ' + total + ' 页'}"
+        th:aria-label="${'第 ' + total + ' 页'}"
+        th:text="${total}"
+      ></a>
+    </li>
+
+    <!-- 下一页 -->
+    <li class="pager-step" th:classappend="${!pager.hasNext()} ? 'disabled' : ''">
+      <a
+        th:if="${pager.hasNext()}"
+        th:href="@{${pager.nextUrl}}"
+        rel="next"
+        title="下一页"
+        aria-label="下一页"
+        >→</a
+      >
+      <span th:unless="${pager.hasNext()}" aria-hidden="true">→</span>
+    </li>
+    <!-- 末页 -->
+    <li class="pager-step pager-edge" th:classappend="${current >= total} ? 'disabled' : ''">
+      <a
+        th:if="${current < total}"
+        th:href="@{${pageBase + 'page/' + total}}"
+        rel="last"
+        title="末页"
+        aria-label="末页"
+        >»</a
+      >
+      <span th:unless="${current < total}" aria-hidden="true">»</span>
+    </li>
+  </ul>
+</nav>

@@ -12,29 +12,23 @@
       </div>
 
       <!-- 主张句用 {rot} 标记旋转词位置；注意 #strings.arraySplit 基于 StringTokenizer（按字符集合切分），
-           不能用来拆分 {rot}，否则 r/o/t/花括号都会被当成分隔符，故改用 indexOf + substring。
-           SpEL 字符串字面量不支持 \n 转义，换行分隔符直接使用源码中的真实换行 -->
+           不能用来拆分 {rot}，否则 r/o/t/花括号都会被当成分隔符，故改用 indexOf + substring -->
       <h1
         class="hero__statement"
         th:with="statement=${theme.config.brand?.hero_statement ?: '在喧嚣里，留一处{rot}。'},
                  rotAt=${#strings.indexOf(statement, '{rot}')},
-                 rotRaw=${#strings.isEmpty(theme.config.brand?.hero_rot_words) ? '笔墨栖居地
-思想避风港
-文字小天地
-心灵自留地' : theme.config.brand.hero_rot_words},
-                 rotFlat=${#strings.replace(rotRaw, '，', '
-')},
-                 words=${#strings.replace(#strings.replace(rotFlat, ',', '
-'), '、', '
-')},
-                 wordList=${#strings.arraySplit(words, '
-')},
-                 firstWord=${#strings.trim(wordList[0])}"
+                 rotRaw=${theme.config.brand?.hero_rot_words ?: '笔墨栖居地\n思想避风港\n文字小天地\n心灵自留地'},
+                 rotFlat=${#strings.replace(#strings.replace(rotRaw, '\r', ''), '，', '\n')},
+                 words=${#strings.replace(#strings.replace(rotFlat, ',', '\n'), '、', '\n')}"
       >
         <span th:text="${rotAt >= 0 ? #strings.substring(statement, 0, rotAt) : statement}"
           >在喧嚣里，留一处</span
         ><span class="rot"
-          ><span id="rotWord" th:attr="data-words=${words}" th:text="${firstWord}"
+          ><span
+            id="rotWord"
+            th:with="firstWord=${#strings.trim(#strings.arraySplit(words, '\n')[0])}"
+            th:attr="data-words=${words}"
+            th:text="${firstWord}"
             >笔墨栖居地</span
           ></span
         ><span th:if="${rotAt >= 0}" th:text="${#strings.substring(statement, rotAt + 5)}">。</span>
@@ -101,25 +95,24 @@
   </section>
 
   <div class="statusbar">
-    <div
-      class="statusbar__inner container"
-      th:attr="data-greetings=${theme.config.home?.greetings ?: '早安，新的一天。
-午安，记得好好吃饭。
-下午好，慢慢来。
-夜色温柔，适合写字。
-夜深了，写点什么吧。'}"
-    >
+    <div class="statusbar__inner container">
       <div class="statusbar__cell">
-        <span class="k">此刻</span>
-        <span class="mono" id="nowTime">00:00:00</span>
+        <span class="now-label">此刻</span>
+        <span class="now-time" id="nowTime">00:00:00</span>
       </div>
       <span class="statusbar__sep"></span>
       <div class="statusbar__cell">
-        <span id="nowGreet">早安，新的一天。</span>
+        <!-- 问候语来自主题设置中以回车分隔的多行文本，由脚本按访客本地时间选择 -->
+        <span
+          class="now-greet"
+          id="nowGreet"
+          th:attr="data-greetings=${theme.config.home?.greetings}"
+          >早安，新的一天。</span
+        >
       </div>
       <span class="statusbar__sep"></span>
       <div class="statusbar__cell statusbar__latest" th:if="${not #lists.isEmpty(posts.items)}">
-        <span class="k">最新</span>
+        <span class="now-label">最新</span>
         <a
           th:href="@{${posts.items[0].status.permalink}}"
           th:text="${posts.items[0].spec.title}"
@@ -137,7 +130,12 @@
     </div>
   </th:block>
 
-  <section class="spotlight container" id="latest" th:if="${not #lists.isEmpty(posts.items)}">
+  <section
+    class="spotlight container"
+    id="latest"
+    data-pager-region
+    th:if="${not #lists.isEmpty(posts.items)}"
+  >
     <div class="spotlight__grid">
       <th:block th:each="post, iterStat : ${posts.items}" th:if="${iterStat.index == 0}">
         <th:block
@@ -154,24 +152,24 @@
               />
               <div th:if="${#strings.isEmpty(cover)}" class="ph" th:classappend="${phClass}">
                 <span
-                  class="ph__tag"
-                  th:if="${cat != null}"
-                  th:text="${cat.spec.displayName}"
-                ></span>
-                <span
                   class="ph__char"
                   th:text="${#strings.substring(post.spec.title, 0, 1)}"
                 ></span>
               </div>
             </div>
+            <!-- 角标固定在封面右上角；分类标签固定在左上角，样式沿用源主题的分类 pill -->
+            <span
+              class="spotlight-main__flag"
+              th:if="${post.spec.pinned}"
+              th:text="${theme.config.home?.featured_flag ?: '置顶精选'}"
+              >置顶精选</span
+            >
+            <span
+              class="tag spotlight-main__cat"
+              th:if="${cat != null}"
+              th:text="${cat.spec.displayName}"
+            ></span>
             <div class="spotlight-main__body">
-              <span
-                class="spotlight-main__flag"
-                th:if="${post.spec.pinned}"
-                th:text="${theme.config.home?.featured_flag ?: '置顶精选'}"
-                >置顶精选</span
-              >
-              <span class="tag" th:if="${cat != null}" th:text="${cat.spec.displayName}"></span>
               <h2 class="spotlight-main__title" th:text="${post.spec.title}"></h2>
               <p class="spotlight-main__excerpt" th:text="${post.status.excerpt}"></p>
               <div class="spotlight-main__meta">
@@ -186,39 +184,29 @@
         </th:block>
       </th:block>
 
-      <!-- 荐读榜单：排序方式与展示数量来自主题设置；留空时前端按阅读量降序排列。
-           候选池取 30 篇，因为 Halo Finder 无法按 stats.visit（阅读量）做服务端排序 -->
-      <th:block th:with="picksPool=${postFinder.list(1, 30).items}">
-        <div
-          class="rank"
-          id="rankList"
-          th:if="${#lists.size(picksPool) > 1}"
-          th:attr="data-sort=${theme.config.home?.picks_sort ?: ''}, data-limit=${theme.config.home?.picks_limit ?: 4}"
+      <div class="rank" th:if="${#lists.size(posts.items) > 1}">
+        <div class="rank__head">
+          <h2 th:text="${theme.config.home?.picks_title ?: '编辑荐读'}">编辑荐读</h2>
+          <span th:text="${theme.config.home?.picks_en ?: 'Editor’s Picks'}">Editor’s Picks</span>
+        </div>
+        <th:block
+          th:each="post, iterStat : ${posts.items}"
+          th:if="${iterStat.index > 0 and iterStat.index < 5}"
         >
-          <div class="rank__head">
-            <h2 th:text="${theme.config.home?.picks_title ?: '编辑荐读'}">编辑荐读</h2>
-            <span th:text="${theme.config.home?.picks_en ?: 'Editor’s Picks'}">Editor’s Picks</span>
-          </div>
-          <a
-            class="rank-item"
-            th:each="pick, pickStat : ${picksPool}"
-            th:if="${pick.status.permalink != posts.items[0].status.permalink}"
-            th:href="@{${pick.status.permalink}}"
-            th:attr="data-views=${pick.stats?.visit ?: 0},
-                     data-date=${#temporals.format(pick.spec.publishTime, 'yyyy-MM-dd''T''HH:mm:ss')},
-                     hidden=${pickStat.index > (theme.config.home?.picks_limit ?: 4)}"
-          >
-            <span class="rank-item__no" aria-hidden="true"></span>
+          <a class="rank-item" th:href="@{${post.status.permalink}}">
+            <span class="rank-item__no" th:text="${#numbers.formatInteger(iterStat.index + 1, 2)}"
+              >02</span
+            >
             <div class="rank-item__body">
-              <div class="rank-item__title" th:text="${pick.spec.title}"></div>
+              <div class="rank-item__title" th:text="${post.spec.title}"></div>
               <div class="rank-item__meta">
                 <time
-                  th:datetime="${pick.spec.publishTime}"
-                  th:text="${#temporals.format(pick.spec.publishTime, 'MM.dd')}"
+                  th:datetime="${post.spec.publishTime}"
+                  th:text="${#temporals.format(post.spec.publishTime, 'MM.dd')}"
                 ></time>
                 <span
-                  th:if="${not #lists.isEmpty(pick.categories)}"
-                  th:text="| · ${pick.categories[0].spec.displayName}|"
+                  th:if="${not #lists.isEmpty(post.categories)}"
+                  th:text="| · ${post.categories[0].spec.displayName}|"
                 ></span>
               </div>
             </div>
@@ -235,21 +223,13 @@
               </svg>
             </span>
           </a>
-        </div>
-      </th:block>
+        </th:block>
+      </div>
     </div>
 
-    <nav class="page-navigator" th:if="${posts.hasPrevious() or posts.hasNext()}">
-      <ul class="pagination">
-        <li th:if="${posts.hasPrevious()}">
-          <a th:href="@{${posts.prevUrl}}" aria-label="上一页">←</a>
-        </li>
-        <li class="current" th:text="${posts.page}">1</li>
-        <li th:if="${posts.hasNext()}">
-          <a th:href="@{${posts.nextUrl}}" aria-label="下一页">→</a>
-        </li>
-      </ul>
-    </nav>
+    <th:block th:with="pager=${posts}, pagerBase='/'">
+      <include src="pagination.html" />
+    </th:block>
   </section>
 
   <!-- 瞬间：数据来自「瞬间」插件（PluginMoments），由主题设置中的开关控制显隐 -->
@@ -360,82 +340,82 @@
     </th:block>
   </th:block>
 
-  <!-- 排除分类：按回车拆行（同时兼容旧版英文逗号配置）。SpEL 字符串字面量不支持 \n 转义，
-       分隔符使用源码中的真实换行；先剔除空格，避免缩进导致缩略名匹配失败 -->
-  <th:block
-    th:with="excludedRaw=${theme.config.home?.category_exclude_slugs ?: 'gallery'},
-             excludedFlat=${#strings.replace(excludedRaw, ' ', '')},
-             excluded=${#strings.arraySplit(excludedFlat, ',
-')}"
-  >
-    <th:block th:each="cat, catStat : ${categoryFinder.listAll()}">
-      <th:block th:if="${cat.postCount > 0 and not #arrays.contains(excluded, cat.spec.slug)}">
-        <th:block th:with="catPosts=${postFinder.listByCategory(1, 4, cat.metadata.name)}">
-          <section class="cat-section container" th:if="${not #lists.isEmpty(catPosts.items)}">
-            <div class="cat-section__head">
-              <span
-                class="cat-section__no"
-                th:text="${#numbers.formatInteger(catStat.index + 1, 2)}"
-                >01</span
-              >
-              <h2 class="cat-section__name" th:text="${cat.spec.displayName}">分类</h2>
-              <div class="cat-section__en" th:text="${#strings.toUpperCase(cat.spec.slug)}">
-                CATEGORY
-              </div>
-              <p
-                class="cat-section__desc"
-                th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : (theme.config.home?.cat_default_desc ?: '收录这一类下的文字。')}"
-              ></p>
-              <a class="cat-section__more" th:href="@{${cat.status.permalink}}">
-                <span th:text="${theme.config.home?.cat_more_text ?: '查看全部'}">查看全部</span>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-            <div class="cat-rows">
-              <a
-                class="cat-row"
-                th:each="post : ${catPosts.items}"
-                th:href="@{${post.status.permalink}}"
-              >
-                <span
-                  class="cat-row__date"
-                  th:text="${#temporals.format(post.spec.publishTime, 'MM.dd')}"
-                  >01.01</span
-                >
-                <div class="cat-row__body">
-                  <h3 class="cat-row__title" th:text="${post.spec.title}"></h3>
-                  <div class="cat-row__meta">
-                    <span th:text="${post.owner?.displayName ?: site.title}"></span>
-                    <span
-                      th:if="${theme.config.post?.show_views != false}"
-                      th:text="| · ${post.stats?.visit ?: 0} 阅读|"
-                    ></span>
-                  </div>
-                </div>
-                <span class="cat-row__go">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+  <!-- 分类导览：只展示主题设置中勾选的分类，未选择时整块隐藏 -->
+  <th:block th:with="pickedCategories=${theme.config.home?.categories}">
+    <th:block th:if="${not #lists.isEmpty(pickedCategories)}">
+      <th:block th:each="categoryName, catStat : ${pickedCategories}">
+        <th:block th:with="cat=${categoryFinder.getByName(categoryName)}">
+          <th:block th:if="${cat != null and cat.postCount > 0}">
+            <th:block th:with="catPosts=${postFinder.listByCategory(1, 4, cat.metadata.name)}">
+              <section class="cat-section container" th:if="${not #lists.isEmpty(catPosts.items)}">
+                <div class="cat-section__head">
+                  <span
+                    class="cat-section__no"
+                    th:text="${#numbers.formatInteger(catStat.count, 2)}"
+                    >01</span
                   >
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </a>
-            </div>
-          </section>
+                  <h2 class="cat-section__name" th:text="${cat.spec.displayName}">分类</h2>
+                  <div class="cat-section__en" th:text="${#strings.toUpperCase(cat.spec.slug)}">
+                    CATEGORY
+                  </div>
+                  <p
+                    class="cat-section__desc"
+                    th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : (theme.config.home?.cat_default_desc ?: '收录这一类下的文字。')}"
+                  ></p>
+                  <a class="cat-section__more" th:href="@{${cat.status.permalink}}">
+                    <span th:text="${theme.config.home?.cat_more_text ?: '查看全部'}"
+                      >查看全部</span
+                    >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </a>
+                </div>
+                <div class="cat-rows">
+                  <a
+                    class="cat-row"
+                    th:each="post : ${catPosts.items}"
+                    th:href="@{${post.status.permalink}}"
+                  >
+                    <span
+                      class="cat-row__date"
+                      th:text="${#temporals.format(post.spec.publishTime, 'MM.dd')}"
+                      >01.01</span
+                    >
+                    <div class="cat-row__body">
+                      <h3 class="cat-row__title" th:text="${post.spec.title}"></h3>
+                      <div class="cat-row__meta">
+                        <span th:text="${post.owner?.displayName ?: site.title}"></span>
+                        <span
+                          th:if="${theme.config.post?.show_views != false}"
+                          th:text="| · ${post.stats?.visit ?: 0} 阅读|"
+                        ></span>
+                      </div>
+                    </div>
+                    <span class="cat-row__go">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </span>
+                  </a>
+                </div>
+              </section>
+            </th:block>
+          </th:block>
         </th:block>
       </th:block>
     </th:block>

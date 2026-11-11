@@ -8,10 +8,7 @@
     <div class="container">
       <div class="page-hero__kicker">FRIENDS · 朋友动态</div>
       <h1 class="page-hero__title" th:text="'朋友最近发布'">朋友最近发布</h1>
-      <p
-        class="page-hero__sub"
-        th:text="${theme.config.page?.friends_page_sub ?: '聚合友站们的新文章，每小时更新一次。他们更新，这里就会动。'}"
-      ></p>
+      <p class="page-hero__sub">聚合友站们的新文章，每小时更新一次。他们更新，这里就会动。</p>
     </div>
   </section>
 
@@ -52,16 +49,8 @@
       请安装并启用「朋友圈」插件，并在插件设置中添加友链 RSS 地址。
     </div>
 
-    <nav class="page-navigator" th:if="${friends.hasPrevious() or friends.hasNext()}">
-      <ul class="pagination">
-        <li th:if="${friends.hasPrevious()}">
-          <a th:href="@{${friends.prevUrl}}" aria-label="上一页">←</a>
-        </li>
-        <li class="current" th:text="${friends.page}">1</li>
-        <li th:if="${friends.hasNext()}">
-          <a th:href="@{${friends.nextUrl}}" aria-label="下一页">→</a>
-        </li>
-      </ul>
-    </nav>
+    <th:block th:with="pager=${friends}, pagerBase='/friends'">
+      <include src="pagination.html" />
+    </th:block>
   </div>
 </include>

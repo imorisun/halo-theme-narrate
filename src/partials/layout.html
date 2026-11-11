@@ -192,19 +192,36 @@
           </ul>
         </div>
 
-        <div class="footer-col">
+        <div
+          class="footer-col"
+          th:if="${not #lists.isEmpty(categoryFinder.listAll())}"
+          th:with="footerCategoryNames=${theme.config['links'] != null ? theme.config['links']['footer_categories'] : null}"
+        >
           <h3 class="footer-col__title" th:text="'分类'">分类</h3>
-          <ul class="footer-links">
-            <li
-              th:each="cat, catStat : ${categoryFinder.listAll()}"
-              th:if="${catStat.index < 6 and cat.postCount > 0}"
-            >
-              <a th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"></a>
-            </li>
-          </ul>
+          <th:block
+            th:with="footerCategoriesValid=${#lists.isEmpty(footerCategoryNames) ? false : not #lists.isEmpty(categoryFinder.getByNames(footerCategoryNames))}"
+          >
+            <!-- 后台已选分类：按配置顺序渲染；失效或已删除的分类自动跳过 -->
+            <ul class="footer-links" th:if="${footerCategoriesValid}">
+              <th:block
+                th:each="name : ${footerCategoryNames}"
+                th:with="cat=${categoryFinder.getByName(name)}"
+              >
+                <li th:if="${cat != null}">
+                  <a th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"></a>
+                </li>
+              </th:block>
+            </ul>
+            <!-- 未配置或配置全部失效：回退展示全部分类 -->
+            <ul class="footer-links" th:unless="${footerCategoriesValid}">
+              <li th:each="cat : ${categoryFinder.listAll()}">
+                <a th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"></a>
+              </li>
+            </ul>
+          </th:block>
         </div>
 
-        <!-- 友链仅来自「链接管理」插件，未安装插件时不展示该列 -->
+        <!-- 友链：来自「链接管理」插件，随机展示数量由主题设置控制；未安装插件时不展示该列 -->
         <div class="footer-col" th:if="${pluginFinder.available('PluginLinks')}">
           <h3 class="footer-col__title" th:text="'友链'">友链</h3>
           <ul class="footer-links">
@@ -214,40 +231,29 @@
                 th:text="${link.spec.displayName}"
                 target="_blank"
                 rel="noopener noreferrer"
-                ><i></i
               ></a>
             </li>
           </ul>
         </div>
       </div>
 
+      <!-- 底部信息统一由「备案信息链接」组件渲染：版权声明、驱动信息与备案链接 -->
       <div class="footer-bottom container">
-        <div class="footer-bottom__copy">
-          <span>
+        <div class="footer-beian">
+          <span class="footer-beian__copy">
             © <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span>
             <a th:href="@{/}" th:text="${site.title}"></a>
           </span>
-          <th:block th:if="${not #strings.isEmpty(theme.config.links?.footer_copyright)}">
-            <span class="sep"></span>
-            <span th:text="${theme.config.links.footer_copyright}"></span>
-          </th:block>
-        </div>
-        <div class="footer-beian">
           <!-- 固定文案：页脚驱动信息（不提供自定义配置） -->
-          <span>Powered by Halo · Theme Narrate · 叙</span>
+          <span class="footer-beian__powered">Powered by Halo · Theme Narrate · 叙</span>
+          <!-- 备案信息链接由主题设置「底部」模块的备案链接数组提供，每项含显示文本与跳转链接 -->
           <a
-            th:if="${not #strings.isEmpty(theme.config.links?.beian_icp)}"
-            href="https://beian.miit.gov.cn/"
+            th:each="link : ${theme.config.links?.beian_links}"
+            th:if="${not #strings.isEmpty(link.text) and not #strings.isEmpty(link.url)}"
+            th:href="${link.url}"
+            th:text="${link.text}"
             target="_blank"
             rel="noopener noreferrer"
-            th:text="${theme.config.links.beian_icp}"
-          ></a>
-          <a
-            th:if="${not #strings.isEmpty(theme.config.links?.police_icp)}"
-            href="https://beian.mps.gov.cn/"
-            target="_blank"
-            rel="noopener noreferrer"
-            th:text="${theme.config.links.police_icp}"
           ></a>
         </div>
       </div>

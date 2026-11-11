@@ -10,10 +10,7 @@
     <div class="container">
       <div class="page-hero__kicker">ABOUT · 关于</div>
       <h1 class="page-hero__title" th:text="${singlePage.spec.title}">关于</h1>
-      <p
-        class="page-hero__sub"
-        th:text="${theme.config.page?.about_intro ?: '写作，是为了让不可见的可见；极简，是为了让可见的更清晰。'}"
-      ></p>
+      <p class="page-hero__sub">写作，是为了让不可见的可见；极简，是为了让可见的更清晰。</p>
     </div>
   </section>
 
@@ -22,24 +19,19 @@
       <aside class="about-card">
         <img
           class="about-card__avatar"
-          th:if="${not #strings.isEmpty(theme.config.page?.about_avatar)}"
-          th:src="${theme.config.page.about_avatar}"
+          th:if="${not #strings.isEmpty(theme.config.brand?.about_avatar)}"
+          th:src="${theme.config.brand?.about_avatar}"
           th:alt="${site.title}"
         />
         <!-- 固定回退：未配置关于页头像时使用主题内置头像 -->
         <img
           class="about-card__avatar"
-          th:unless="${not #strings.isEmpty(theme.config.page?.about_avatar)}"
+          th:unless="${not #strings.isEmpty(theme.config.brand?.about_avatar)}"
           th:src="@{/assets/images/avatar.jpg}"
           th:alt="${site.title}"
         />
         <h2 class="about-card__name" th:text="${site.title}">Narrate</h2>
-        <div
-          class="about-card__role"
-          th:text="${theme.config.page?.about_role ?: 'WRITER · DESIGNER'}"
-        >
-          WRITER · DESIGNER
-        </div>
+        <div class="about-card__role">WRITER · DESIGNER</div>
         <p
           class="about-card__desc"
           th:text="${#strings.isEmpty(theme.config.brand?.site_slogan) ? (site.subtitle ?: '一方文字自留地，记录生活、阅读与随想。') : theme.config.brand.site_slogan}"
@@ -91,15 +83,6 @@
             <span class="k">网址</span>
             <span class="v"
               ><a th:href="${site.url}" th:text="${site.url}" target="_blank" rel="noopener"></a
-            ></span>
-          </li>
-          <li th:if="${not #strings.isEmpty(theme.config.page?.about_contact)}">
-            <span class="k">邮箱</span>
-            <span class="v"
-              ><a
-                th:href="|mailto:${theme.config.page.about_contact}|"
-                th:text="${theme.config.page.about_contact}"
-              ></a
             ></span>
           </li>
           <li>

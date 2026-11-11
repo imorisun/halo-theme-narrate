@@ -19,7 +19,7 @@
         <p
           class="page-hero__sub"
           th:if="${isGuestbook or not #strings.isEmpty(singlePage.status.excerpt)}"
-          th:text="${isGuestbook ? (theme.config.page?.guestbook_intro ?: '说点什么吧——交流、指正、打个招呼，都可以。') : singlePage.status.excerpt}"
+          th:text="${isGuestbook ? '说点什么吧——交流、指正、打个招呼，都可以。' : singlePage.status.excerpt}"
         ></p>
       </div>
     </section>

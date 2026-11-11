@@ -25,7 +25,7 @@
   </section>
 
   <div class="layout container">
-    <main class="cat-list">
+    <main class="cat-list" data-pager-region>
       <a
         class="cat-row"
         th:each="post, iterStat : ${posts.items}"
@@ -69,17 +69,9 @@
         换一个标签看看，或稍后再来。
       </div>
 
-      <nav class="page-navigator" th:if="${posts.hasPrevious() or posts.hasNext()}">
-        <ul class="pagination">
-          <li th:if="${posts.hasPrevious()}">
-            <a th:href="@{${posts.prevUrl}}" aria-label="上一页">←</a>
-          </li>
-          <li class="current" th:text="${posts.page}">1</li>
-          <li th:if="${posts.hasNext()}">
-            <a th:href="@{${posts.nextUrl}}" aria-label="下一页">→</a>
-          </li>
-        </ul>
-      </nav>
+      <th:block th:with="pager=${posts}, pagerBase=${tag.status.permalink}">
+        <include src="pagination.html" />
+      </th:block>
     </main>
 
     <include src="sidebar.html" />

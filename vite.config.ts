@@ -3,10 +3,7 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   plugins: [haloThemePlugin()],
-  lint: {
-    options: { typeAware: true, typeCheck: true },
-    ignorePatterns: [".agents", ".trae/**", "public/assets/vendor/**"],
-  },
+  lint: { options: { typeAware: true, typeCheck: true }, ignorePatterns: [".agents", ".trae"] },
   fmt: {
     printWidth: 100,
     tabWidth: 2,
@@ -16,7 +13,7 @@ export default defineConfig({
     insertFinalNewline: true,
     sortImports: {},
     sortTailwindcss: {},
-    ignorePatterns: [".agents", ".trae/**", "public/assets/vendor/**"],
+    ignorePatterns: [".agents", ".trae"],
   },
   staged: {
     "*": ["vp check"],

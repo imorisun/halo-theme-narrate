@@ -1,21 +1,16 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|${theme.config.page?.links_page_title ?: '以站会友'} · ${site.title}|">
-      友链 · Narrate
-    </title>
+    <title th:text="|以站会友 · ${site.title}|">友链 · Narrate</title>
   </template>
 
   <section class="page-hero">
     <span class="page-hero__glyph" th:text="'友'">友</span>
     <div class="container">
       <div class="page-hero__kicker">BLOGROLL · 友情链接</div>
-      <h1 class="page-hero__title" th:text="${theme.config.page?.links_page_title ?: '以站会友'}">
-        以站会友
-      </h1>
-      <p
-        class="page-hero__sub"
-        th:text="${theme.config.page?.links_page_sub ?: '网络时代的君子之交。下面这些站点常年更新、各自生长，是我在互联网上反复回访的地方。'}"
-      ></p>
+      <h1 class="page-hero__title">以站会友</h1>
+      <p class="page-hero__sub">
+        网络时代的君子之交。下面这些站点常年更新、各自生长，是我在互联网上反复回访的地方。
+      </p>
     </div>
   </section>
 
@@ -92,12 +87,7 @@
     <section class="link-apply reveal">
       <header class="link-apply__head">
         <p class="page-hero__kicker">EXCHANGE · 申请友链</p>
-        <h2
-          class="link-apply__title"
-          th:text="${theme.config.page?.links_apply_title ?: '交换链接'}"
-        >
-          交换链接
-        </h2>
+        <h2 class="link-apply__title">交换链接</h2>
         <span class="link-apply__glyph" aria-hidden="true">换</span>
       </header>
       <div class="link-apply__grid">
@@ -117,14 +107,11 @@
         </div>
         <div class="link-apply__col">
           <h3 class="link-apply__sub" th:text="'申请须知'">申请须知</h3>
-          <!-- SpEL 字符串字面量不支持 \n 转义，分隔符使用源码中的真实换行 -->
           <ul class="apply-rules">
-            <li
-              th:each="rule : ${#strings.arraySplit(theme.config.page?.links_apply_rules ?: '', '
-')}"
-              th:if="${not #strings.isEmpty(#strings.trim(rule))}"
-              th:text="${#strings.trim(rule)}"
-            ></li>
+            <li>原创内容为主的独立阅读</li>
+            <li>保持活跃，三个月内仍有更新</li>
+            <li>无违法违规与 spam 内容</li>
+            <li>请先添加本站链接，再通过留言板或邮件告知，通过后我会尽快回链</li>
           </ul>
         </div>
       </div>

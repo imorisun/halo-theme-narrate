@@ -156,26 +156,34 @@ function initCounters() {
 }
 
 /* ---------------- 首页「此刻」与问候 ---------------- */
+const DEFAULT_GREETINGS = [
+  "早安，新的一天。",
+  "午安，记得好好吃饭。",
+  "下午好，慢慢来。",
+  "夜色温柔，适合写字。",
+  "夜深了，写点什么吧。",
+];
+
+/** 按访客本地时间返回问候语序号：上午 / 午间 / 下午 / 夜晚 / 深夜 */
+function greetingIndexOf(hour: number): number {
+  if (hour < 5 || hour >= 23) return 4;
+  if (hour < 11) return 0;
+  if (hour < 13) return 1;
+  if (hour < 18) return 2;
+  return 3;
+}
+
 function initClock() {
   const time = qs<HTMLElement>("#nowTime");
   const greet = qs<HTMLElement>("#nowGreet");
   if (!time && !greet) return;
 
-  const container = qs<HTMLElement>(".statusbar__inner");
-  // 兼容回车换行分隔（含 CRLF 与旧版竖线配置）
-  const greetings = (container?.dataset.greetings ?? "")
-    .split(/[\r\n|]+/)
+  // 主题设置中以回车分隔，空行忽略；未配置时使用内置文案
+  const configured = (greet?.dataset.greetings ?? "")
+    .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
-  const fallbacks = [
-    "早安，新的一天。",
-    "午安，记得好好吃饭。",
-    "下午好，慢慢来。",
-    "夜色温柔，适合写字。",
-    "夜深了，写点什么吧。",
-  ];
-  // 配置不足 5 条时仍按已有条目展示，缺失的时段回退到最后一条
-  const words = greetings.length ? greetings : fallbacks;
+  const greetings = configured.length ? configured : DEFAULT_GREETINGS;
 
   const pad = (value: number) => (value < 10 ? `0${value}` : `${value}`);
   const tick = () => {
@@ -184,18 +192,8 @@ function initClock() {
       time.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     }
     if (greet) {
-      const hour = now.getHours();
-      const index =
-        hour >= 5 && hour < 11
-          ? 0
-          : hour >= 11 && hour < 13
-            ? 1
-            : hour >= 13 && hour < 18
-              ? 2
-              : hour >= 18 && hour < 23
-                ? 3
-                : 4;
-      greet.textContent = words[index] ?? words[words.length - 1] ?? "";
+      const index = Math.min(greetingIndexOf(now.getHours()), greetings.length - 1);
+      greet.textContent = greetings[index];
     }
   };
   tick();
@@ -207,9 +205,9 @@ function initRotatingWord() {
   const element = qs<HTMLElement>("#rotWord");
   if (!element) return;
 
-  // 兼容换行、中英文逗号、顿号、分号与竖线分隔（含旧版单行逗号配置）
+  // 主题设置按回车分隔，同时兼容旧版逗号 / 顿号分隔的配置
   const words = (element.dataset.words ?? "")
-    .split(/[\r\n,，、;；|]+/)
+    .split(/[\r\n,，、]+/)
     .map((item) => item.trim())
     .filter(Boolean);
   if (words.length < 2) return;
@@ -248,34 +246,6 @@ function initMoments() {
   });
   qs<HTMLButtonElement>("#momNext")?.addEventListener("click", () => {
     track.scrollBy({ left: step(), behavior: prefersReducedMotion ? "auto" : "smooth" });
-  });
-}
-
-/* ---------------- 首页荐读榜单 ---------------- */
-function initPicks() {
-  const list = qs<HTMLElement>("#rankList");
-  if (!list) return;
-
-  const items = qsa<HTMLAnchorElement>(".rank-item", list);
-  if (!items.length) return;
-
-  const sort = list.dataset.sort || "views";
-  const limit = Number.parseInt(list.dataset.limit ?? "4", 10) || 4;
-  const numeric = (item: HTMLElement, key: string) =>
-    Number.parseFloat(item.dataset[key] ?? "0") || 0;
-
-  // pinned 保持服务端默认顺序（置顶 → 优先级 → 发布时间），无需重排
-  if (sort === "views") {
-    items.sort((a, b) => numeric(b, "views") - numeric(a, "views"));
-  } else if (sort === "latest") {
-    items.sort(
-      (a, b) => (Date.parse(b.dataset.date ?? "") || 0) - (Date.parse(a.dataset.date ?? "") || 0),
-    );
-  }
-
-  items.forEach((item, index) => {
-    item.hidden = index >= limit;
-    list.appendChild(item);
   });
 }
 
@@ -619,6 +589,131 @@ function initLinkCaptcha() {
   });
 }
 
+/* ---------------- 文章列表无刷新分页 ---------------- */
+function initListPagination() {
+  const REGION = "[data-pager-region]";
+  const currentRegion = () => qs<HTMLElement>(REGION);
+  if (!currentRegion()) return;
+
+  let controller: AbortController | null = null;
+  let loading = false;
+  let pending: { url: string; push: boolean } | null = null;
+
+  const showLoading = (region: HTMLElement) => {
+    region.classList.add("is-loading");
+    region.setAttribute("aria-busy", "true");
+    let overlay = qs<HTMLElement>(".pager-loading", region);
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "pager-loading";
+      overlay.setAttribute("role", "status");
+      overlay.setAttribute("aria-live", "polite");
+      overlay.innerHTML =
+        '<span class="pager-spinner" aria-hidden="true"></span><span>正在加载…</span>';
+      region.appendChild(overlay);
+    }
+    overlay.hidden = false;
+  };
+
+  const hideLoading = (region: HTMLElement) => {
+    region.classList.remove("is-loading");
+    region.removeAttribute("aria-busy");
+    const overlay = qs<HTMLElement>(".pager-loading", region);
+    if (overlay) overlay.hidden = true;
+  };
+
+  const showError = (region: HTMLElement, retry: () => void) => {
+    qs<HTMLElement>(".pager-error", region)?.remove();
+    const box = document.createElement("div");
+    box.className = "pager-error";
+    box.setAttribute("role", "alert");
+    const message = document.createElement("p");
+    message.textContent = "内容加载失败，请检查网络后重试。";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pager-retry";
+    button.textContent = "重试";
+    button.addEventListener("click", retry);
+    box.append(message, button);
+    region.appendChild(box);
+  };
+
+  const scrollToRegion = (region: HTMLElement) => {
+    const top = region.getBoundingClientRect().top + window.scrollY - 72;
+    window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? "auto" : "smooth" });
+  };
+
+  const replaceRegion = (html: string) => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const next = doc.querySelector<HTMLElement>(REGION);
+    const current = currentRegion();
+    if (!next || !current) throw new Error("pager region missing");
+    current.replaceWith(document.importNode(next, true));
+    if (doc.title) document.title = doc.title;
+
+    const region = currentRegion();
+    if (region) {
+      initArchiveCounts();
+      initRelativeTimes();
+    }
+  };
+
+  const load = async (url: string, push: boolean, force = false) => {
+    if (loading && !force) return;
+    const region = currentRegion();
+    if (!region) return;
+
+    controller?.abort();
+    controller = new AbortController();
+    loading = true;
+    pending = { url, push };
+    qs<HTMLElement>(".pager-error", region)?.remove();
+    showLoading(region);
+
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        credentials: "same-origin",
+        headers: { Accept: "text/html" },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      replaceRegion(await response.text());
+      if (push) history.pushState({ narratePager: true }, "", url);
+      loading = false;
+      pending = null;
+      const next = currentRegion();
+      if (next) scrollToRegion(next);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      loading = false;
+      const target = currentRegion();
+      const retry = pending;
+      if (!target) return;
+      hideLoading(target);
+      if (retry) showError(target, () => void load(retry.url, retry.push));
+    }
+  };
+
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const anchor = (event.target as HTMLElement).closest(
+      ".page-navigator a[href]",
+    ) as HTMLAnchorElement | null;
+    if (!anchor || !anchor.closest(REGION)) return;
+
+    event.preventDefault();
+    if (loading || anchor.href === window.location.href) return;
+    void load(anchor.href, true);
+  });
+
+  window.addEventListener("popstate", () => {
+    if (!currentRegion()) return;
+    void load(window.location.href, false, true);
+  });
+}
+
 /* ---------------- 启动 ---------------- */
 function boot() {
   initThemeToggle();
@@ -630,7 +725,6 @@ function boot() {
   initClock();
   initRotatingWord();
   initMoments();
-  initPicks();
   initRelativeTimes();
   initReadTime();
   initContentImages();
@@ -640,6 +734,7 @@ function boot() {
   initArchiveCounts();
   initHighlight();
   initLinkCaptcha();
+  initListPagination();
   window.addEventListener("load", initHighlight, { once: true });
 }
 

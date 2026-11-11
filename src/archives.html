@@ -14,7 +14,7 @@
     </div>
   </section>
 
-  <div class="page-wrap container">
+  <div class="page-wrap container" data-pager-region>
     <div class="arc-total">
       <span>共</span>
       <b data-archive-total th:text="${postFinder.list(1, 1).total}">0</b>
@@ -59,16 +59,8 @@
       发布文章后，这里会按年月自动生成归档。
     </div>
 
-    <nav class="page-navigator" th:if="${archives.hasPrevious() or archives.hasNext()}">
-      <ul class="pagination">
-        <li th:if="${archives.hasPrevious()}">
-          <a th:href="@{${archives.prevUrl}}" aria-label="上一页">←</a>
-        </li>
-        <li class="current" th:text="${archives.page}">1</li>
-        <li th:if="${archives.hasNext()}">
-          <a th:href="@{${archives.nextUrl}}" aria-label="下一页">→</a>
-        </li>
-      </ul>
-    </nav>
+    <th:block th:with="pager=${archives}, pagerBase=${site.routes.archivesUri}">
+      <include src="pagination.html" />
+    </th:block>
   </div>
 </include>
