@@ -2,7 +2,7 @@
 
 > 本文件用于上架提交与自查，不随主题 ZIP 分发。可直接复制表格中的文案到 Halo 应用市场表单。
 >
-> 当前状态：**资料与制品已准备；演示站已在 Halo 2.27.2 上完成主要页面验证。待补充预览截图、商店应用 ID，并完成安装/卸载与窄屏实机验收。**
+> 当前状态：**资料与制品已准备；演示站已在 Halo 2.27.2 上完成主要页面验证，商店应用 ID 已配置。待补充预览截图，并完成安装/卸载与窄屏实机验收。**
 
 ## 1. 应用基本信息
 
@@ -15,6 +15,7 @@
 | 分类          | 博客 / 个人网站                                                                      | 商店若有固定分类，以平台选项为准                  |
 | 标签          | 极简、杂志排版、阅读优先、深色模式、响应式、中文、个人博客                           | 建议控制在 5–8 个                                 |
 | 当前版本      | `1.0.0`                                                                              | 与 `theme.yaml` 的 `spec.version`、ZIP 文件名一致 |
+| 商店应用 ID   | `app-ewy4rn2c`                                                                       | 已写入 `theme.yaml` 的 `metadata.annotations`     |
 | Halo 兼容范围 | `>=2.22.0`                                                                           | 使用了 2.22 引入的 `array` 设置组件               |
 | 许可证        | `GPL-3.0`                                                                            | 仓库根目录已包含完整 `LICENSE`                    |
 | 开源仓库      | `https://github.com/imorisun/halo-theme-narrate`                                     | 公开可访问                                        |
@@ -113,7 +114,7 @@ Narrate · 叙 1.0.0 首个正式版本。
 | 浏览器 Console / Network                 | **待实机验证**   | 无未处理异常、无资源 404、无意外外部请求                                                                      |
 | 预览截图                                 | **待补**         | 见第 5 节                                                                                                     |
 | 演示地址                                 | 通过             | `https://www.puresky.top/`，Halo 2.27.2                                                                       |
-| 商店应用 ID                              | **待创建**       | 创建应用后补充 `store.halo.run/app-id` 注解                                                                   |
+| 商店应用 ID                              | 通过             | `app-ewy4rn2c`，已写入 `theme.yaml` 注解与 CD 工作流                                                          |
 | 上游素材授权                             | **待确认**       | 内置 `avatar.jpg` 来自上游主题素材，需确认可分发；如不确定建议替换为中性占位图                                |
 
 ## 7. 审核说明（可粘贴到提交说明）
@@ -148,29 +149,29 @@ Halo 兼容范围：>=2.22.0
 - 文章目录仅在正文包含 h2/h3 时显示。
 ```
 
-## 8. 创建应用后的补充配置
+## 8. 应用 ID 与持续发布配置
 
-在 Halo 应用市场创建应用并拿到应用 ID 后，在 `theme.yaml` 的 `metadata` 下补充：
+商店应用 ID `app-ewy4rn2c` 已写入 `theme.yaml`：
 
 ```yaml
 metadata:
   annotations:
-    "store.halo.run/app-id": "app-xxxxxxxx"
-    # 可选：声明推荐搭配的应用市场 ID（不是 metadata.name）
-    "store.halo.run/recommended-apps": '["app-moments", "app-links", "app-friends"]'
+    "store.halo.run/app-id": "app-ewy4rn2c"
 ```
 
-同时：
+`.github/workflows/cd.yaml` 已切换至 `theme-cd.yaml@v5` 并启用应用市场发布：发布 GitHub Release 时会自动执行 `pnpm build`、上传 ZIP 到 Release，并同步到应用市场。
+
+仍需完成：
 
 1. 在 GitHub 仓库设置中添加 Topic：`halo-theme`。
-2. 将 `.github/workflows/cd.yaml` 中的 `skip-appstore-release` 改为 `false`，并填写真实的 `app-id`。
-3. 在 Halo 官网个人中心创建个人令牌，勾选「应用市场开发者 > 版本管理」，保存为 GitHub Secret `HALO_PAT`。
-4. 确认 `theme.yaml` 的 `spec.logo` 指向的 `icon.png` 已推送到 `main` 分支。
+2. 在 Halo 官网个人中心创建个人令牌，勾选「应用市场开发者 > 版本管理」，保存为 GitHub Secret `HALO_PAT`。
+3. 确认 `theme.yaml` 的 `spec.logo` 指向的 `icon.png` 已推送到 `main` 分支。
 
 ## 9. 发布证据
 
 ```text
 Commit: 56f1da9（本次改动待提交）
+App ID: app-ewy4rn2c
 Theme version: 1.0.0
 Halo versions tested: 2.27.2（线上演示站）；2.22.x 待实机验证
 Clean install: 待验证（演示站已运行本主题）
@@ -180,5 +181,5 @@ Routes checked: 线上验证 /、/archives、/archives/{post}、/categories、/c
 Optional plugins checked: 静态审查 PluginMoments / PluginLinks / PluginFriends / PluginSearchWidget / PluginCommentWidget
 Known limitations: 简体中文界面；不含演示数据；可选插件未安装时对应页面不可用
 Artifact path: dist/halo-theme-narrate-1.0.0.zip
-Artifact SHA-256: E48638D10B6C79CF2309B8BF30B462F6724E2DCC300E8A87F1AC9527CA0A5EDD
+Artifact SHA-256: 7BE3A565DA6430C5272C00B1491C86B5DAECD9E15F9B9D82C5C64B38B3B41BCF
 ```

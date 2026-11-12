@@ -3,6 +3,8 @@ kind: Theme
 metadata:
   # 固定标识：Halo 主题唯一名称，安装后不可变更，同时决定静态资源前缀 /themes/halo-theme-narrate/
   name: halo-theme-narrate
+  annotations:
+    "store.halo.run/app-id": "app-ewy4rn2c"
 spec:
   displayName: Narrate · 叙
   author:
