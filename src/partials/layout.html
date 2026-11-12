@@ -9,6 +9,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#fbfbfa" />
+    <!-- 在线中文字体（第三方字体服务）：可在主题设置中关闭，关闭后使用系统字体 -->
+    <link
+      rel="stylesheet"
+      th:if="${theme.config.brand?.enable_web_font != false}"
+      href="https://fontsapi.zeoseven.com/184/main/result.css"
+    />
     <script>
       (function () {
         var saved = null;

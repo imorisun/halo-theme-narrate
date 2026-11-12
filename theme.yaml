@@ -9,6 +9,7 @@ spec:
     name: 晨阳
     website: https://www.puresky.top/
   description: 移植自 Typecho 主题 Narrate · 叙的 Halo 2 版本：简约、优雅、阅读优先的编辑杂志风博客主题，支持深色模式、首页精选、瞬间、分类导览、文章目录与链接/朋友圈插件页面。
+  logo: https://raw.githubusercontent.com/imorisun/halo-theme-narrate/main/icon.png
   homepage: https://github.com/imorisun/halo-theme-narrate#readme
   repo: https://github.com/imorisun/halo-theme-narrate
   issues: https://github.com/imorisun/halo-theme-narrate/issues

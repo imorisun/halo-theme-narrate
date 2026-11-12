@@ -1,5 +1,5 @@
-/* 中文正文字体：LXGW 975 Yuan SC（远程字体服务，失败时回退到系统字体） */
-@import url("https://fontsapi.zeoseven.com/184/main/result.css");
+/* 中文正文字体：LXGW 975 Yuan SC。是否加载由主题设置「启用在线中文字体」控制，
+   在 layout.html 中以 <link> 引入；关闭或服务不可用时回退到系统字体。 */
 
 /* 等宽字体：使用主题内置的 JetBrains Mono，避免额外网络请求 */
 @font-face {

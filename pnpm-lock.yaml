@@ -13,8 +13,8 @@ importers:
   .:
     devDependencies:
       '@halo-dev/theme-package-cli':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.1.1
+        version: 1.1.1
       '@halo-dev/vite-plugin-halo-theme':
         specifier: ^1.0.3
         version: 1.0.3(@voidzero-dev/vite-plus-core@0.1.19(@types/node@18.11.9)(typescript@5.9.3)(yaml@2.8.3))(axios@1.14.0)
@@ -38,8 +38,8 @@ packages:
     peerDependencies:
       axios: ^1.12.*
 
-  '@halo-dev/theme-package-cli@1.0.1':
-    resolution: {integrity: sha512-9pm8qVE30M9gCdpX7EB1FW/kBszRSkJvnwDChqdLyG+faBlIKXEDkazNHxDD9JjdW5GwStnQJ1IvQ/qgEFuiYQ==}
+  '@halo-dev/theme-package-cli@1.1.1':
+    resolution: {integrity: sha512-T2dYnpxV9/pLbmYGX/1YvxPajrjniGbY8GLMJ9OBwgEBZ/64Nd2CeI6BNTH3bx7WsU2t0fZt8asvxAFy7gmcbg==}
     hasBin: true
 
   '@halo-dev/vite-plugin-halo-theme@1.0.3':
@@ -1118,7 +1118,7 @@ snapshots:
       axios: 1.14.0
       qs: 6.15.0
 
-  '@halo-dev/theme-package-cli@1.0.1':
+  '@halo-dev/theme-package-cli@1.1.1':
     dependencies:
       archiver: 7.0.1
       commander: 13.1.0

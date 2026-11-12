@@ -12,6 +12,11 @@ spec:
           label: 站点标语
           help: 首页首屏、关于页与友链页的简介文案；留空时优先使用 Halo 系统设置中的站点副标题。
           value: ""
+        - $formkit: switch
+          name: enable_web_font
+          label: 启用在线中文字体
+          help: 从第三方字体服务（fontsapi.zeoseven.com）加载 LXGW 975 圆体；关闭后使用系统字体，不影响正常阅读。
+          value: true
         - $formkit: text
           name: hero_statement
           label: 首屏主张句
