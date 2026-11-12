@@ -1087,6 +1087,88 @@ body::after {
   margin-block-start: 0.5rem;
 }
 
+/* 横滑末端的「查看全部」卡片 */
+.moment--all {
+  flex: 0 0 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  background: var(--surface-2);
+  border-style: dashed;
+  overflow: hidden;
+  isolation: isolate;
+}
+.moment--all:hover {
+  border-color: var(--accent-line);
+  border-style: solid;
+}
+.moment--all:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 2px;
+}
+.moment--all__glyph {
+  position: absolute;
+  right: -8px;
+  bottom: -22px;
+  z-index: -1;
+  font-family: var(--font-serif);
+  font-size: 132px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.08;
+  transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  user-select: none;
+  pointer-events: none;
+}
+.moment--all:hover .moment--all__glyph {
+  transform: translateY(-8px);
+}
+.moment--all__kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.moment--all__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.moment--all__label {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.moment--all__arrow {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  color: var(--text-soft);
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    transform 0.25s;
+}
+.moment--all__arrow svg {
+  width: 15px;
+  height: 15px;
+}
+.moment--all:hover .moment--all__arrow {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  transform: translateX(3px);
+}
+
 /* ---------- 瞬间列表页（plugin-moments /moments） ---------- */
 .moment-filter {
   display: flex;
@@ -1248,6 +1330,34 @@ body::after {
 .mcard__audio {
   display: block;
   width: 100%;
+}
+/* 卡片标签：仅在「全部」视图展示 */
+.mcard__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.mcard__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.mcard__tag:hover {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .mcard__foot {
   display: flex;
@@ -3658,6 +3768,9 @@ button.mcard__stat:hover svg {
   }
   .moment {
     flex-basis: 84vw;
+  }
+  .moment--all {
+    flex-basis: 62vw;
   }
   .footer-grid {
     grid-template-columns: 1fr;

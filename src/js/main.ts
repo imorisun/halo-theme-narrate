@@ -589,117 +589,44 @@ function initLinkCaptcha() {
   });
 }
 
-/* ---------------- 瞬间标签跳转 ---------------- */
-// 插件把正文中的 #标签 渲染成 /moments?tag=<名称> 链接，主页、列表、详情共用同一套结构
-const MOMENT_TAG_LINK = 'a[href*="/moments?tag="]';
-let momentTagNavigating = false;
-let momentTagResetTimer: number | undefined;
+/* ---------------- 瞬间卡片摘要 ---------------- */
+// 插件渲染的 #标签 链接既可能是相对的 `?tag=xxx`，也可能是绝对的 `/moments?tag=xxx`
+const MOMENT_TAG_LINK_PATTERN = /^(?:\.\/)?\?tag=|\/moments\?tag=/;
 
-/** 校验并归一化标签链接：仅接受同源、指向 /moments 且带非空 tag 参数的地址 */
-function parseMomentTagLink(anchor: HTMLAnchorElement): URL | null {
-  let url: URL;
-  try {
-    url = new URL(anchor.getAttribute("href") ?? "", window.location.origin);
-  } catch {
-    return null;
-  }
-  if (url.origin !== window.location.origin) return null;
-  // 兼容 Halo 部署在子路径下的情况，只校验路径末段
-  if (!url.pathname.replace(/\/+$/, "").endsWith("/moments")) return null;
-
-  const tag = (url.searchParams.get("tag") ?? "").trim();
-  if (!tag) return null;
-  url.searchParams.set("tag", tag);
-  return url;
+function initMomentSummary(root: ParentNode = document) {
+  // 列表页的标签统一由卡片底部的标签区展示，移除正文摘要里的标签链接，
+  // 避免标签被摘要高度截断后压在卡片底部分隔线上
+  qsa<HTMLElement>(".mcard__text", root).forEach((body) => {
+    qsa<HTMLAnchorElement>("a[href]", body).forEach((link) => {
+      if (!MOMENT_TAG_LINK_PATTERN.test(link.getAttribute("href") ?? "")) return;
+      const block = link.parentElement;
+      link.remove();
+      if (block && block !== body && !(block.textContent ?? "").trim()) block.remove();
+    });
+  });
 }
 
-function initMomentTags(root: ParentNode = document) {
-  qsa<HTMLAnchorElement>(MOMENT_TAG_LINK, root).forEach((link) => link.classList.add("moment-tag"));
-
-  // 卡片正文有固定高度（主页 120px / 列表 4 行），标签内联会被裁切；
-  // 这里把标签收拢到卡片底部独立一行，保持可见、可点击
-  qsa<HTMLElement>(".moment", root).forEach((card) =>
-    collectCardTags(card, ".moment__text", "moment__tags", ".moment-footer"),
-  );
-  qsa<HTMLElement>(".mcard", root).forEach((card) =>
-    collectCardTags(card, ".mcard__text", "mcard__tags", ".mcard__foot"),
-  );
-}
-
-function collectCardTags(
-  card: HTMLElement,
-  bodySelector: string,
-  rowClass: string,
-  beforeSelector: string,
-) {
-  const body = qs<HTMLElement>(bodySelector, card);
-  if (!body) return;
-  const links = qsa<HTMLAnchorElement>(MOMENT_TAG_LINK, body);
-  if (!links.length) return;
-
-  const row = document.createElement("div");
-  row.className = rowClass;
-  const seen = new Set<string>();
-
-  links.forEach((link) => {
-    const target = parseMomentTagLink(link);
-    const name = target?.searchParams.get("tag") ?? "";
-    if (target && name && !seen.has(name)) {
-      seen.add(name);
-      const chip = link.cloneNode(true) as HTMLAnchorElement;
-      chip.href = target.href;
-      chip.classList.add("moment-tag");
-      row.append(chip);
+/* ---------------- 瞬间标签链接归一化 ---------------- */
+function initMomentTagLinks(root: ParentNode = document) {
+  // 插件渲染的 #标签 链接可能是相对地址 `?tag=xxx`：
+  // 在 /moments 下可用，但在首页会解析成 `/?tag=`、详情页会解析成 `/moments/{name}?tag=`，
+  // 这里统一改写为瞬间列表页的标签筛选地址。
+  const momentsUrl = document.documentElement.dataset.momentsUrl || "/moments";
+  qsa<HTMLAnchorElement>(
+    ".moment__text a[href], .mcard__text a[href], .moment-detail__body a[href]",
+    root,
+  ).forEach((link) => {
+    const href = link.getAttribute("href") ?? "";
+    if (!MOMENT_TAG_LINK_PATTERN.test(href)) return;
+    let tag: string | null = null;
+    try {
+      tag = new URL(href, window.location.href).searchParams.get("tag");
+    } catch {
+      return;
     }
-
-    // 移除正文中的原始标签，父级若因此变空则一并清理
-    const block = link.parentElement;
-    link.remove();
-    if (block && block !== body && !(block.textContent ?? "").trim()) block.remove();
+    if (!tag) return;
+    link.href = `${momentsUrl}?tag=${encodeURIComponent(tag)}`;
   });
-
-  if (!row.childElementCount) return;
-  card.insertBefore(row, qs<HTMLElement>(beforeSelector, card));
-}
-
-function resetMomentTagNavigation() {
-  momentTagNavigating = false;
-  window.clearTimeout(momentTagResetTimer);
-  qsa<HTMLElement>(".moment-tag.is-loading").forEach((link) => {
-    link.classList.remove("is-loading");
-    link.removeAttribute("aria-busy");
-  });
-}
-
-function handleMomentTagClick(event: MouseEvent) {
-  if (event.defaultPrevented || event.button !== 0) return;
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-  const anchor = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>(MOMENT_TAG_LINK);
-  if (!anchor) return;
-
-  const target = parseMomentTagLink(anchor);
-  if (!target) {
-    event.preventDefault();
-    showToast("标签无效，无法跳转");
-    return;
-  }
-  if (target.href === window.location.href) {
-    event.preventDefault();
-    showToast("当前已在该标签的瞬间列表");
-    return;
-  }
-
-  event.preventDefault();
-  if (momentTagNavigating) return;
-
-  // 防止连续点击造成多次跳转，同时给出加载反馈；若用户中断加载则自动复位
-  momentTagNavigating = true;
-  anchor.classList.add("is-loading");
-  anchor.setAttribute("aria-busy", "true");
-  showToast("正在前往该标签的瞬间…");
-  momentTagResetTimer = window.setTimeout(resetMomentTagNavigation, 8000);
-  window.location.assign(target.href);
 }
 
 /* ---------------- 轻提示 ---------------- */
@@ -941,7 +868,8 @@ function initListPagination() {
     if (region) {
       initArchiveCounts();
       initRelativeTimes();
-      initMomentTags(region);
+      initMomentSummary(region);
+      initMomentTagLinks(region);
       initMomentUpvote(region);
       initMomentComments(region);
     }
@@ -1024,11 +952,10 @@ function boot() {
   initHighlight();
   initLinkCaptcha();
   initMomentUpvote();
-  initMomentTags();
+  initMomentSummary();
+  initMomentTagLinks();
   initMomentComments();
   initListPagination();
-  document.addEventListener("click", handleMomentTagClick);
-  window.addEventListener("pageshow", resetMomentTagNavigation);
   window.addEventListener("load", initHighlight, { once: true });
 }
 

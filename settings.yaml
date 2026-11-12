@@ -10,25 +10,8 @@ spec:
         - $formkit: text
           name: site_slogan
           label: 站点标语
-          help: 首页首屏简介与页脚品牌简介。留空时优先使用 Halo 系统设置中的站点副标题。
+          help: 首页首屏、关于页与友链页的简介文案；留空时优先使用 Halo 系统设置中的站点副标题。
           value: ""
-        - $formkit: text
-          name: brand_en
-          label: 品牌英文后缀
-          help: 页头品牌名右侧的小号英文，默认 SERENE。
-          value: "SERENE"
-        - $formkit: text
-          name: footer_tagline
-          label: 页脚品牌副标题
-          value: "Narrate · 以文为名"
-        - $formkit: text
-          name: hero_glyph
-          label: 首屏背景巨字
-          value: "叙"
-        - $formkit: text
-          name: hero_kicker
-          label: 首屏眉题
-          value: "叙 · 个人博客"
         - $formkit: text
           name: hero_statement
           label: 首屏主张句
@@ -43,11 +26,6 @@ spec:
             思想避风港
             文字小天地
             心灵自留地
-        - $formkit: text
-          name: about_avatar
-          label: 关于页头像
-          help: 填写图片地址；留空使用主题内置头像。
-          value: ""
 
     - group: home
       label: 首页模块
@@ -79,46 +57,6 @@ spec:
             下午好，慢慢来。
             夜色温柔，适合写字。
             夜深了，写点什么吧。
-        - $formkit: text
-          name: featured_flag
-          label: 焦点图角标
-          value: "置顶精选"
-        - $formkit: text
-          name: picks_title
-          label: 荐读标题
-          value: "编辑荐读"
-        - $formkit: text
-          name: picks_en
-          label: 荐读英文副题
-          value: "Editor’s Picks"
-        - $formkit: text
-          name: moments_title
-          label: 瞬间标题
-          value: "瞬间"
-        - $formkit: text
-          name: moments_en
-          label: 瞬间英文副题
-          value: "Moments"
-        - $formkit: text
-          name: moments_sub
-          label: 瞬间副标题
-          value: "一些零碎的当下"
-        - $formkit: text
-          name: cat_more_text
-          label: 分类导览更多按钮
-          value: "查看全部"
-        - $formkit: text
-          name: cat_default_desc
-          label: 分类无描述时的占位文案
-          value: "收录这一类下的文字。"
-        - $formkit: text
-          name: posts_anchor_text
-          label: 首屏「开始阅读」按钮文案
-          value: "开始阅读"
-        - $formkit: text
-          name: archives_text
-          label: 首屏「归档全部」按钮文案
-          value: "归档全部"
 
     - group: post
       label: 文章与阅读
@@ -149,12 +87,6 @@ spec:
     - group: links
       label: 底部
       formSchema:
-        - $formkit: categorySelect
-          name: footer_categories
-          label: 页脚分类
-          help: 选择页脚「分类」列展示的分类；留空时自动展示全部分类。
-          multiple: true
-          value: []
         - $formkit: number
           name: footer_links_limit
           label: 页脚友链展示数量
@@ -183,58 +115,3 @@ spec:
               label: 跳转链接
               help: 备案查询地址，需以 https:// 开头。
               value: ""
-
-    - group: style
-      label: 外观
-      formSchema:
-        - $formkit: radio
-          name: default_mode
-          label: 默认配色
-          help: 「跟随系统」会在首次访问时按系统偏好选择深浅色，访客手动切换后以本地记录为准。
-          value: system
-          options:
-            - label: 跟随系统
-              value: system
-            - label: 浅色
-              value: light
-            - label: 深色
-              value: dark
-        - $formkit: color
-          name: accent_color
-          label: 浅色模式强调色
-          value: "#c2605a"
-        - $formkit: color
-          name: accent_color_dark
-          label: 深色模式强调色
-          value: "#d98a84"
-        - $formkit: color
-          name: background_color
-          label: 浅色模式背景色
-          value: "#fbfbfa"
-        - $formkit: color
-          name: background_color_dark
-          label: 深色模式背景色
-          value: "#121316"
-        - $formkit: number
-          name: content_width
-          label: 页面最大宽度（px）
-          help: 控制页头、页脚与列表页的整体容器宽度；正文阅读宽度由主题固定为 720px。
-          value: 1180
-          min: 960
-          max: 1600
-        - $formkit: number
-          name: radius
-          label: 卡片圆角（px）
-          value: 16
-          min: 0
-          max: 32
-        - $formkit: text
-          name: font_sans
-          label: 正文字体
-          help: 留空使用主题默认字体栈；可填写系统已安装字体名称。
-          value: ""
-        - $formkit: text
-          name: default_cover
-          label: 默认封面图
-          help: 文章未设置封面时使用；留空显示主题的纯色占位图。
-          value: ""

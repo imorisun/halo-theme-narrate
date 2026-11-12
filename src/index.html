@@ -4,11 +4,11 @@
   </template>
 
   <section class="hero">
-    <span class="hero__glyph" th:text="${theme.config.brand?.hero_glyph ?: '叙'}">叙</span>
+    <span class="hero__glyph">叙</span>
     <div class="hero__inner container">
       <div class="hero__kicker">
         <span class="pulse"></span>
-        <span th:text="${theme.config.brand?.hero_kicker ?: '叙 · 个人博客'}">叙 · 个人博客</span>
+        <span>叙 · 个人博客</span>
       </div>
 
       <!-- 主张句用 {rot} 标记旋转词位置；注意 #strings.arraySplit 基于 StringTokenizer（按字符集合切分），
@@ -71,7 +71,7 @@
 
       <div class="hero__actions">
         <a class="btn-primary" href="#latest">
-          <span th:text="${theme.config.home?.posts_anchor_text ?: '开始阅读'}">开始阅读</span>
+          <span>开始阅读</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -83,12 +83,7 @@
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
         </a>
-        <a
-          class="btn-ghost"
-          th:href="@{${site.routes.archivesUri}}"
-          th:text="${theme.config.home?.archives_text ?: '归档全部'}"
-          >归档全部</a
-        >
+        <a class="btn-ghost" th:href="@{${site.routes.archivesUri}}">归档全部</a>
       </div>
     </div>
     <a class="hero__scroll" href="#latest" aria-label="向下滚动">Scroll</a>
@@ -135,7 +130,7 @@
       <th:block th:each="post, iterStat : ${posts.items}" th:if="${iterStat.index == 0}">
         <th:block
           th:with="cat=${not #lists.isEmpty(post.categories) ? post.categories[0] : null},
-                   cover=${not #strings.isEmpty(post.spec.cover) ? post.spec.cover : (theme.config.style?.default_cover ?: '')},
+                   cover=${post.spec.cover},
                    phClass=${'ph--' + #strings.arraySplit('a,b,c,d,e', ',')[iterStat.index % 5]}"
         >
           <a class="spotlight-main" th:href="@{${post.status.permalink}}">
@@ -153,12 +148,7 @@
               </div>
             </div>
             <!-- 角标固定在封面右上角；分类标签固定在左上角，样式沿用源主题的分类 pill -->
-            <span
-              class="spotlight-main__flag"
-              th:if="${post.spec.pinned}"
-              th:text="${theme.config.home?.featured_flag ?: '置顶精选'}"
-              >置顶精选</span
-            >
+            <span class="spotlight-main__flag" th:if="${post.spec.pinned}">置顶精选</span>
             <span
               class="tag spotlight-main__cat"
               th:if="${cat != null}"
@@ -181,8 +171,8 @@
 
       <div class="rank" th:if="${#lists.size(posts.items) > 1}">
         <div class="rank__head">
-          <h2 th:text="${theme.config.home?.picks_title ?: '编辑荐读'}">编辑荐读</h2>
-          <span th:text="${theme.config.home?.picks_en ?: 'Editor’s Picks'}">Editor’s Picks</span>
+          <h2>编辑荐读</h2>
+          <span>Editor’s Picks</span>
         </div>
         <th:block
           th:each="post, iterStat : ${posts.items}"
@@ -232,10 +222,10 @@
         <div class="container">
           <div class="moments__head">
             <h2>
-              <span th:text="${theme.config.home?.moments_title ?: '瞬间'}">瞬间</span>
-              <em th:text="${theme.config.home?.moments_en ?: 'Moments'}">Moments</em>
+              <span>瞬间</span>
+              <em>Moments</em>
             </h2>
-            <p th:text="${theme.config.home?.moments_sub ?: '一些零碎的当下'}">一些零碎的当下</p>
+            <p>一些零碎的当下</p>
             <div class="moments__nav">
               <button type="button" id="momPrev" aria-label="向左">
                 <svg
@@ -288,7 +278,7 @@
                     class="moment-img"
                     th:if="${content.medium[0].type.name == 'PHOTO'}"
                     th:src="${content.medium[0].url}"
-                    th:alt="${theme.config.home?.moments_title ?: '瞬间'}"
+                    th:alt="瞬间"
                     loading="lazy"
                   />
                   <video
@@ -318,13 +308,34 @@
                     <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z" />
                     <circle cx="12" cy="10" r="2.4" />
                   </svg>
-                  <span th:text="${theme.config.home?.moments_title ?: '瞬间'}">瞬间</span>
+                  <span>瞬间</span>
                 </span>
                 <a th:href="@{/moments/{name}(name=${moment.metadata.name})}" th:text="'查看 →'"
                   >查看 →</a
                 >
               </div>
             </article>
+
+            <!-- 横滑末端的「查看全部」卡片：滚到最右侧时作为进入瞬间列表页的入口 -->
+            <a class="moment moment--all" th:href="@{/moments}">
+              <span class="moment--all__glyph" aria-hidden="true">瞬</span>
+              <span class="moment--all__kicker">Moments · ALL</span>
+              <span class="moment--all__foot">
+                <span class="moment--all__label">查看全部瞬间</span>
+                <span class="moment--all__arrow" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </span>
+            </a>
           </div>
         </div>
       </section>
@@ -351,12 +362,10 @@
                   </div>
                   <p
                     class="cat-section__desc"
-                    th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : (theme.config.home?.cat_default_desc ?: '收录这一类下的文字。')}"
+                    th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : '收录这一类下的文字。'}"
                   ></p>
                   <a class="cat-section__more" th:href="@{${cat.status.permalink}}">
-                    <span th:text="${theme.config.home?.cat_more_text ?: '查看全部'}"
-                      >查看全部</span
-                    >
+                    <span>查看全部</span>
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"

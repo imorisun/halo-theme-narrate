@@ -58,12 +58,7 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img
-              th:src="${item.url}"
-              th:alt="${theme.config.home?.moments_title ?: '瞬间'}"
-              loading="lazy"
-              decoding="async"
-            />
+            <img th:src="${item.url}" alt="瞬间" loading="lazy" decoding="async" />
           </a>
           <div class="moment-detail__video" th:if="${item.type.name == 'VIDEO'}">
             <video th:src="${item.url}" controls preload="metadata"></video>
@@ -81,21 +76,6 @@
             >查看关联内容 →</a
           >
         </th:block>
-      </div>
-
-      <!-- 标签：按 spec.tags 渲染，点击进入该标签的瞬间列表 -->
-      <div
-        class="moment-tags"
-        th:if="${moment.spec != null and moment.spec.tags != null and !moment.spec.tags.isEmpty()}"
-      >
-        <a
-          class="moment-tag"
-          rel="tag"
-          th:each="momentTag : ${moment.spec.tags}"
-          th:href="@{/moments(tag=${momentTag})}"
-          th:text="${momentTag}"
-          >标签</a
-        >
       </div>
 
       <footer class="moment-detail__foot">

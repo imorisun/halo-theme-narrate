@@ -30,7 +30,7 @@
         class="cat-row"
         th:each="post, iterStat : ${posts.items}"
         th:href="@{${post.status.permalink}}"
-        th:with="cover=${not #strings.isEmpty(post.spec.cover) ? post.spec.cover : (theme.config.style?.default_cover ?: '')},
+        th:with="cover=${post.spec.cover},
                  phClass=${'ph--' + #strings.arraySplit('a,b,c,d,e', ',')[iterStat.index % 5]}"
       >
         <span class="cat-row__index" th:text="${#numbers.formatInteger(iterStat.index + 1, 2)}"

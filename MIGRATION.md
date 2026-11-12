@@ -94,15 +94,15 @@
 
 ## 3. 配置项改造
 
-`settings.yaml` 共 **5 组 / 39 项**，全部映射到 `theme.config.<group>.<name>`：
+`settings.yaml` 共 **4 组 / 14 项**，全部映射到 `theme.config.<group>.<name>`：
 
 ### brand — 品牌与首屏
 
-`site_slogan`、`brand_en`、`footer_tagline`、`hero_glyph`、`hero_kicker`、`hero_statement`（支持 `{rot}` 占位）、`hero_rot_words`、`about_avatar`
+`site_slogan`、`hero_statement`（支持 `{rot}` 占位）、`hero_rot_words`
 
 ### home — 首页模块
 
-`enable_moments`（开关，需安装「瞬间」插件）、`moment_limit`、`categories`（`categorySelect` 多选，值为分类 `metadata.name` 数组，留空隐藏分类导览）、`greetings`（多行文本，按回车分隔，依次对应五个时段）、`featured_flag`、`picks_title`、`picks_en`、`moments_title`、`moments_en`、`moments_sub`、`cat_more_text`、`cat_default_desc`、`posts_anchor_text`、`archives_text`
+`enable_moments`（开关，需安装「瞬间」插件）、`moment_limit`、`categories`（`categorySelect` 多选，值为分类 `metadata.name` 数组，留空隐藏分类导览）、`greetings`（多行文本，按回车分隔，依次对应五个时段）
 
 > `greetings` 与 `hero_rot_words` 均为多行文本，按回车分隔；`greetings` 的第 1–5 行依次对应 05:00–11:00、11:00–13:00、13:00–18:00、18:00–23:00、23:00–次日 05:00，行数不足时以最后一行补齐，留空则使用内置文案。`hero_rot_words` 仍兼容旧版逗号 / 顿号分隔的配置。`hero_statement` 中的 `{rot}` 标记旋转词位置（不足两词时保持静态）。
 
@@ -112,15 +112,9 @@
 
 ### links — 底部
 
-`footer_categories`（`categorySelect` 多选，值为分类 `metadata.name` 数组，留空展示全部分类）、`footer_links_limit`（页脚友链随机展示数量，默认 8）、`beian_links`（`array` 组件，每项含 `text` / `url`）
+`footer_links_limit`（页脚友链随机展示数量，默认 8）、`beian_links`（`array` 组件，每项含 `text` / `url`）
 
-> 页脚分类列按 `footer_categories` 的数组顺序渲染，已删除或失效的分类自动跳过；未配置或配置全部失效时自动回退为展示全部分类，站点没有任何分类时隐藏该列。页脚友链列读取「链接管理」插件的 `linkFinder.random(n)`，未安装插件时不渲染；`beian_links` 使用 Halo 2.22 引入的 `array` 组件，可增删、排序，数组为空时不显示。页脚底部（版权声明、驱动信息与备案链接）统一由该组件所在的 `.footer-beian` 区块渲染，不再保留独立的版权信息模块。
-
-### style — 外观
-
-`default_mode`（`system` / `light` / `dark`）、`accent_color`、`accent_color_dark`、`background_color`、`background_color_dark`、`content_width`（页面最大宽度，默认 1180）、`radius`、`font_sans`、`default_cover`
-
-> 原 `content_width` 默认值为 720 且被误标为「正文最大宽度」，实际映射到页面容器宽度 `--maxw`；已改为默认 1180、标签「页面最大宽度」，正文阅读宽度固定 720px。
+> 页脚分类列固定展示全部分类（原 `footer_categories` 配置已移除），站点没有任何分类时隐藏该列。页脚友链列读取「链接管理」插件的 `linkFinder.random(n)`，未安装插件时不渲染；`beian_links` 使用 Halo 2.22 引入的 `array` 组件，可增删、排序，数组为空时不显示。页脚底部（版权声明、驱动信息与备案链接）统一由该组件所在的 `.footer-beian` 区块渲染，不再保留独立的版权信息模块。
 
 ---
 
@@ -128,22 +122,20 @@
 
 ### 已配置化（通用文案 / 可配置内容）
 
-- 首屏主张句、旋转词、眉题、背景巨字、品牌英文、页脚标语
-- 首页问候语、精选角标、各区块标题与副标题、分类默认描述、按钮文案
+- 首屏主张句、旋转词、站点标语
+- 首页问候语、瞬间开关与数量、分类导览展示的分类
 - 文章目录开关、代码高亮开关、阅读量显示、版权协议名称/链接
-- 页脚备案链接（数组，文本 + 跳转地址）、页脚附加版权、友链随机展示数量
-- 关于页头像
-- 主题色（明/暗）、背景色（明/暗）、页面宽度、圆角、正文字体、默认封面
-- 瞬间开关与展示数量、分类导览展示的分类
+- 页脚备案链接（数组，文本 + 跳转地址）、友链随机展示数量
 
 ### 保留为固定内容（已加注释标记）
 
+- 展示型文案：首屏巨字/眉题、品牌英文后缀、页脚标语、荐读与瞬间区块标题/副标题、分类占位描述、各按钮文案（原 `brand` / `home` 中的展示型配置已移除，改为模板固定文案）
 - 结构性标签：`篇 / 类 / 标签 / 阅读 / 此刻 / 最新 / 目录 / 评论 / 上一篇 / 下一篇` 等
 - 页面眉题：`ARCHIVE · 归档`、`CATEGORIES · 分类`、`BLOGROLL · 友情链接` 等
 - 版权句式、错误页兜底说明、空状态文案
 - 关于页身份标签与简介、留言板引导、友链页标题/副标题/申请须知、朋友圈页副标题（原 `page` 分组已移除，改为模板固定文案）
 - 未配置 Halo 菜单时的默认导航（首页/归档/分类/标签）
-- 未配置作者头像时的内置头像回退、未配置关于页头像时的回退
+- 未配置作者头像时的内置头像回退、关于页固定使用主题内置头像（原 `about_avatar` 配置已移除）
 
 ### 固定标识（不可配置，已加注释）
 
@@ -201,7 +193,7 @@
 5. **友链与备案链接**：页脚友链列沿用历史版本，读取 `plugin-links` 的 `linkFinder.random(n)`，展示数量由 `links.footer_links_limit` 控制（默认 8），未安装插件时不渲染；备案信息链接改用 `links.beian_links` 数组渲染，支持任意条数与跳转地址。`beian_links` 使用 `array` 组件，因此主题最低要求为 Halo `>= 2.22.0`。
 6. **友链申请**：表单提交至 `/links/apply/submit`，验证码来自 `/links/apply/captcha`，字段为 `displayName / url / logo / email / description / captcha`，与 `plugin-links` 的申请接口约定一致；如插件版本调整字段，需同步修改 `src/links.html`。
 7. **搜索**：仅在检测到 `PluginSearchWidget` 插件时显示搜索入口。
-8. **中文正文字体**：`src/css/font.css` 通过 `fontsapi.zeoseven.com` 加载 LXGW 975 Yuan SC，离线环境会回退到系统字体；可在主题设置 `style.font_sans` 中替换。
+8. **中文正文字体**：`src/css/font.css` 通过 `fontsapi.zeoseven.com` 加载 LXGW 975 Yuan SC，离线环境会回退到系统字体；字体栈与主题色等外观参数固定在 `src/css/style.css` 的 `:root` 变量中，不提供后台配置。
 9. **截图打包**：`theme-package` 默认只打包 `templates/`、`*.yaml`、README、LICENSE，根目录 `screenshot.png` 不会进入 ZIP；如需在 Console 显示预览，可执行 `npx theme-package --all` 或手动向 ZIP 根目录补充截图。
 10. **构建产物**：Halo 只读取 `templates/`，修改 `src/` 后必须重新 `pnpm build`。
 

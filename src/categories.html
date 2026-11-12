@@ -53,7 +53,7 @@
           </div>
           <p
             class="link-card__desc"
-            th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : (theme.config.home?.cat_default_desc ?: '收录这一类下的文字。')}"
+            th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : '收录这一类下的文字。'}"
           ></p>
         </a>
         <!-- 二级分类：listAsTree() 只把子分类挂到 children，需要单独渲染，否则不会出现在列表中 -->

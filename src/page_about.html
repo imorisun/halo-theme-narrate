@@ -17,17 +17,10 @@
   <div class="container">
     <div class="about-grid">
       <aside class="about-card">
+        <!-- 关于页头像使用站点图标，未设置时回退到主题内置头像 -->
         <img
           class="about-card__avatar"
-          th:if="${not #strings.isEmpty(theme.config.brand?.about_avatar)}"
-          th:src="${theme.config.brand?.about_avatar}"
-          th:alt="${site.title}"
-        />
-        <!-- 固定回退：未配置关于页头像时使用主题内置头像 -->
-        <img
-          class="about-card__avatar"
-          th:unless="${not #strings.isEmpty(theme.config.brand?.about_avatar)}"
-          th:src="@{/assets/images/avatar.jpg}"
+          th:src="@{${site.logo ?: '/assets/images/avatar.jpg'}}"
           th:alt="${site.title}"
         />
         <h2 class="about-card__name" th:text="${site.title}">Narrate</h2>

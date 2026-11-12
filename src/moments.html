@@ -3,7 +3,7 @@
 
   可用变量：
     moments — UrlContextListResult<MomentVo>，当前页瞬间分页结果
-    tags    — List<MomentTagVo>，全部瞬间标签（含 name / momentCount）
+    tags    — List<MomentTagVo>，全部瞬间标签（含 momentCount / permalink）
   插件未安装时该模板不会被渲染。
 -->
 <include src="layout.html">
@@ -15,10 +15,8 @@
     <span class="page-hero__glyph" th:text="'瞬'">瞬</span>
     <div class="container">
       <div class="page-hero__kicker">MOMENT · 瞬间</div>
-      <h1 class="page-hero__title" th:text="${theme.config.home?.moments_title ?: '瞬间'}">瞬间</h1>
-      <p class="page-hero__sub" th:text="${theme.config.home?.moments_sub ?: '一些零碎的当下'}">
-        一些零碎的当下
-      </p>
+      <h1 class="page-hero__title">瞬间</h1>
+      <p class="page-hero__sub">一些零碎的当下</p>
     </div>
   </section>
 
@@ -31,7 +29,7 @@
     >
       <a
         class="moment-filter__item"
-        th:classappend="${param.tag != null and not #lists.isEmpty(param.tag)} ? 'is-active' : ''"
+        th:classappend="${param.tag == null or #lists.isEmpty(param.tag)} ? 'is-active' : ''"
         th:href="@{/moments}"
         >全部</a
       >
@@ -39,7 +37,7 @@
         class="moment-filter__item"
         th:each="tag : ${tags}"
         th:classappend="${param.tag != null and not #lists.isEmpty(param.tag) and #lists.contains(param.tag, tag.name)} ? 'is-active' : ''"
-        th:href="@{/moments(tag=${tag.name})}"
+        th:href="${tag.permalink}"
       >
         <span th:text="${tag.name}">标签</span>
         <em th:text="${tag.momentCount}">0</em>
@@ -101,7 +99,7 @@
               <img
                 th:if="${content.medium[0].type.name == 'PHOTO'}"
                 th:src="${content.medium[0].url}"
-                th:alt="${theme.config.home?.moments_title ?: '瞬间'}"
+                alt="瞬间"
                 loading="lazy"
                 decoding="async"
               />
@@ -127,18 +125,17 @@
             ></audio>
           </div>
 
-          <!-- 标签：按 spec.tags 渲染，点击进入该标签的瞬间列表 -->
+          <!-- 标签：仅在「全部」视图展示；筛选某个标签时不重复显示 -->
           <div
-            class="moment-tags"
-            th:if="${moment.spec != null and moment.spec.tags != null and !moment.spec.tags.isEmpty()}"
+            class="mcard__tags"
+            th:if="${(param.tag == null or #lists.isEmpty(param.tag)) and moment.spec.tags != null and !moment.spec.tags.isEmpty()}"
           >
             <a
-              class="moment-tag"
-              rel="tag"
-              th:each="momentTag : ${moment.spec.tags}"
-              th:href="@{/moments(tag=${momentTag})}"
-              th:text="${momentTag}"
-              >标签</a
+              class="mcard__tag"
+              th:each="tag : ${moment.spec.tags}"
+              th:href="@{/moments(tag=${tag})}"
+              th:text="|#${tag}|"
+              >#标签</a
             >
           </div>
 

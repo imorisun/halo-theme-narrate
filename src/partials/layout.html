@@ -2,43 +2,24 @@
 <html
   lang="zh-CN"
   xmlns:th="http://www.thymeleaf.org"
-  th:with="
-    accent=${theme.config.style?.accent_color ?: '#c2605a'},
-    accentDark=${theme.config.style?.accent_color_dark ?: '#d98a84'},
-    bg=${theme.config.style?.background_color ?: '#fbfbfa'},
-    bgDark=${theme.config.style?.background_color_dark ?: '#121316'},
-    pageWidth=${theme.config.style?.content_width ?: 1180},
-    radius=${theme.config.style?.radius ?: 16},
-    brandGlyph=${theme.config.brand?.hero_glyph ?: '叙'},
-    brandEn=${theme.config.brand?.brand_en ?: 'SERENE'},
-    footerTagline=${theme.config.brand?.footer_tagline ?: 'Narrate · 以文为名'},
-    menu=${menuFinder.getPrimary()}"
+  th:with="menu=${menuFinder.getPrimary()}"
+  th:attr="data-moments-url=@{/moments}"
 >
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#fbfbfa" />
-    <!-- 主题设置：颜色 / 宽度 / 圆角。使用比 :root 更高的选择器优先级，保证覆盖样式表默认值 -->
-    <style
-      th:text="|html[data-theme='light'],html:root:not([data-theme='dark']){--accent:${accent};--accent-soft:color-mix(in srgb,var(--accent) 10%,transparent);--accent-line:color-mix(in srgb,var(--accent) 30%,transparent);--bg:${bg};--maxw:${pageWidth}px;--radius:${radius}px}html[data-theme='dark']{--accent:${accentDark};--accent-soft:color-mix(in srgb,var(--accent) 12%,transparent);--accent-line:color-mix(in srgb,var(--accent) 34%,transparent);--bg:${bgDark}}|"
-    ></style>
-    <style
-      th:if="${not #strings.isEmpty(theme.config.style?.font_sans)}"
-      th:text="|:root{--font-sans:'${theme.config.style.font_sans}',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}|"
-    ></style>
-    <script th:inline="javascript">
+    <script>
       (function () {
-        var mode = /*[[${theme.config.style?.default_mode ?: 'system'}]]*/ "system";
         var saved = null;
         try {
           saved = localStorage.getItem("narrate-theme");
-        } catch (error) {
+        } catch {
           saved = null;
         }
         var dark = saved
           ? saved === "dark"
-          : mode === "dark" ||
-            (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          : window.matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
       })();
     </script>
@@ -60,7 +41,7 @@
           />
           <span class="brand__name">
             <span th:text="${site.title}">Narrate</span>
-            <small th:text="${brandEn}">SERENE</small>
+            <small>SERENE</small>
           </span>
         </a>
 
@@ -165,13 +146,13 @@
       <div class="footer-grid container">
         <div class="footer-col footer-col--brand">
           <a class="footer-brand" th:href="@{/}">
-            <span class="footer-brand__glyph" th:text="${brandGlyph}">叙</span>
+            <span class="footer-brand__glyph">叙</span>
             <span class="footer-brand__name">
               <span th:text="${site.title}">Narrate</span>
-              <small th:text="${brandEn}">SERENE</small>
+              <small>SERENE</small>
             </span>
           </a>
-          <p th:text="${footerTagline}">Narrate · 以文为名</p>
+          <p>Narrate · 以文为名</p>
         </div>
 
         <div class="footer-col">
@@ -192,34 +173,16 @@
           </ul>
         </div>
 
-        <div
-          class="footer-col"
-          th:if="${not #lists.isEmpty(categoryFinder.listAll())}"
-          th:with="footerCategoryNames=${theme.config['links'] != null ? theme.config['links']['footer_categories'] : null}"
-        >
-          <h3 class="footer-col__title" th:text="'分类'">分类</h3>
-          <th:block
-            th:with="footerCategoriesValid=${#lists.isEmpty(footerCategoryNames) ? false : not #lists.isEmpty(categoryFinder.getByNames(footerCategoryNames))}"
-          >
-            <!-- 后台已选分类：按配置顺序渲染；失效或已删除的分类自动跳过 -->
-            <ul class="footer-links" th:if="${footerCategoriesValid}">
-              <th:block
-                th:each="name : ${footerCategoryNames}"
-                th:with="cat=${categoryFinder.getByName(name)}"
-              >
-                <li th:if="${cat != null}">
-                  <a th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"></a>
-                </li>
-              </th:block>
-            </ul>
-            <!-- 未配置或配置全部失效：回退展示全部分类 -->
-            <ul class="footer-links" th:unless="${footerCategoriesValid}">
-              <li th:each="cat : ${categoryFinder.listAll()}">
+        <th:block th:with="footerCategories=${categoryFinder.listAll()}">
+          <div class="footer-col" th:if="${not #lists.isEmpty(footerCategories)}">
+            <h3 class="footer-col__title" th:text="'分类'">分类</h3>
+            <ul class="footer-links">
+              <li th:each="cat : ${footerCategories}">
                 <a th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"></a>
               </li>
             </ul>
-          </th:block>
-        </div>
+          </div>
+        </th:block>
 
         <!-- 友链：来自「链接管理」插件，随机展示数量由主题设置控制；未安装插件时不展示该列 -->
         <div class="footer-col" th:if="${pluginFinder.available('PluginLinks')}">
