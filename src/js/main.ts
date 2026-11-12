@@ -589,6 +589,292 @@ function initLinkCaptcha() {
   });
 }
 
+/* ---------------- 瞬间标签跳转 ---------------- */
+// 插件把正文中的 #标签 渲染成 /moments?tag=<名称> 链接，主页、列表、详情共用同一套结构
+const MOMENT_TAG_LINK = 'a[href*="/moments?tag="]';
+let momentTagNavigating = false;
+let momentTagResetTimer: number | undefined;
+
+/** 校验并归一化标签链接：仅接受同源、指向 /moments 且带非空 tag 参数的地址 */
+function parseMomentTagLink(anchor: HTMLAnchorElement): URL | null {
+  let url: URL;
+  try {
+    url = new URL(anchor.getAttribute("href") ?? "", window.location.origin);
+  } catch {
+    return null;
+  }
+  if (url.origin !== window.location.origin) return null;
+  // 兼容 Halo 部署在子路径下的情况，只校验路径末段
+  if (!url.pathname.replace(/\/+$/, "").endsWith("/moments")) return null;
+
+  const tag = (url.searchParams.get("tag") ?? "").trim();
+  if (!tag) return null;
+  url.searchParams.set("tag", tag);
+  return url;
+}
+
+function initMomentTags(root: ParentNode = document) {
+  qsa<HTMLAnchorElement>(MOMENT_TAG_LINK, root).forEach((link) => link.classList.add("moment-tag"));
+
+  // 卡片正文有固定高度（主页 120px / 列表 4 行），标签内联会被裁切；
+  // 这里把标签收拢到卡片底部独立一行，保持可见、可点击
+  qsa<HTMLElement>(".moment", root).forEach((card) =>
+    collectCardTags(card, ".moment__text", "moment__tags", ".moment-footer"),
+  );
+  qsa<HTMLElement>(".mcard", root).forEach((card) =>
+    collectCardTags(card, ".mcard__text", "mcard__tags", ".mcard__foot"),
+  );
+}
+
+function collectCardTags(
+  card: HTMLElement,
+  bodySelector: string,
+  rowClass: string,
+  beforeSelector: string,
+) {
+  const body = qs<HTMLElement>(bodySelector, card);
+  if (!body) return;
+  const links = qsa<HTMLAnchorElement>(MOMENT_TAG_LINK, body);
+  if (!links.length) return;
+
+  const row = document.createElement("div");
+  row.className = rowClass;
+  const seen = new Set<string>();
+
+  links.forEach((link) => {
+    const target = parseMomentTagLink(link);
+    const name = target?.searchParams.get("tag") ?? "";
+    if (target && name && !seen.has(name)) {
+      seen.add(name);
+      const chip = link.cloneNode(true) as HTMLAnchorElement;
+      chip.href = target.href;
+      chip.classList.add("moment-tag");
+      row.append(chip);
+    }
+
+    // 移除正文中的原始标签，父级若因此变空则一并清理
+    const block = link.parentElement;
+    link.remove();
+    if (block && block !== body && !(block.textContent ?? "").trim()) block.remove();
+  });
+
+  if (!row.childElementCount) return;
+  card.insertBefore(row, qs<HTMLElement>(beforeSelector, card));
+}
+
+function resetMomentTagNavigation() {
+  momentTagNavigating = false;
+  window.clearTimeout(momentTagResetTimer);
+  qsa<HTMLElement>(".moment-tag.is-loading").forEach((link) => {
+    link.classList.remove("is-loading");
+    link.removeAttribute("aria-busy");
+  });
+}
+
+function handleMomentTagClick(event: MouseEvent) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+  const anchor = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>(MOMENT_TAG_LINK);
+  if (!anchor) return;
+
+  const target = parseMomentTagLink(anchor);
+  if (!target) {
+    event.preventDefault();
+    showToast("标签无效，无法跳转");
+    return;
+  }
+  if (target.href === window.location.href) {
+    event.preventDefault();
+    showToast("当前已在该标签的瞬间列表");
+    return;
+  }
+
+  event.preventDefault();
+  if (momentTagNavigating) return;
+
+  // 防止连续点击造成多次跳转，同时给出加载反馈；若用户中断加载则自动复位
+  momentTagNavigating = true;
+  anchor.classList.add("is-loading");
+  anchor.setAttribute("aria-busy", "true");
+  showToast("正在前往该标签的瞬间…");
+  momentTagResetTimer = window.setTimeout(resetMomentTagNavigation, 8000);
+  window.location.assign(target.href);
+}
+
+/* ---------------- 轻提示 ---------------- */
+let toastTimer: number | undefined;
+
+function ensureToast(): HTMLElement {
+  const existing = qs<HTMLElement>(".narrate-toast");
+  if (existing) return existing;
+
+  const toast = document.createElement("div");
+  toast.className = "narrate-toast";
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  document.body.appendChild(toast);
+  return toast;
+}
+
+function showToast(message: string) {
+  const toast = ensureToast();
+  toast.textContent = message;
+  toast.classList.add("is-visible");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+}
+
+/* ---------------- 瞬间点赞 ---------------- */
+const MOMENT_UPVOTE_STORAGE = "halo.upvoted.moment.names";
+
+function readMomentUpvoted(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(MOMENT_UPVOTE_STORAGE) || "[]");
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeMomentUpvoted(names: string[]) {
+  try {
+    localStorage.setItem(MOMENT_UPVOTE_STORAGE, JSON.stringify(names));
+  } catch {
+    // 隐私模式下写入失败时仅保留本次会话内的视觉状态
+  }
+}
+
+function initMomentUpvote(root: ParentNode = document) {
+  qsa<HTMLButtonElement>("[data-moment-upvote]", root).forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    const name = button.dataset.momentUpvote;
+    if (!name) return;
+    button.dataset.bound = "true";
+
+    const count = qs<HTMLElement>("[data-moment-upvote-count]", button);
+    const sync = () => {
+      const upvoted = readMomentUpvoted().includes(name);
+      button.classList.toggle("is-upvoted", upvoted);
+      button.setAttribute("aria-pressed", String(upvoted));
+      button.setAttribute("title", upvoted ? "已点赞" : "点赞");
+    };
+    sync();
+
+    button.addEventListener("click", async () => {
+      if (button.dataset.loading === "true") return;
+
+      if (readMomentUpvoted().includes(name)) {
+        showToast("已经点过赞啦");
+        return;
+      }
+
+      button.dataset.loading = "true";
+      try {
+        // plural 必须与 Moment 的 GVK 一致（moment.halo.run / moments），否则接口返回 404
+        const response = await fetch("/apis/api.halo.run/v1alpha1/trackers/upvote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ group: "moment.halo.run", plural: "moments", name }),
+        });
+        // 409 表示服务端已记录过该访客的点赞
+        if (response.status === 409) {
+          writeMomentUpvoted([...readMomentUpvoted(), name]);
+          sync();
+          showToast("已经点过赞啦");
+          return;
+        }
+        if (!response.ok) throw new Error(String(response.status));
+        writeMomentUpvoted([...readMomentUpvoted(), name]);
+        if (count) count.textContent = String(Number(count.textContent || "0") + 1);
+        sync();
+      } catch {
+        showToast("点赞失败，请稍后重试");
+      } finally {
+        button.dataset.loading = "false";
+      }
+    });
+  });
+}
+
+/* ---------------- 瞬间卡片内嵌评论 ---------------- */
+const COMMENT_WIDGET_SCRIPT = "/plugins/PluginCommentWidget/assets/static/comment-widget.js";
+const COMMENT_GROUP = "moment.halo.run";
+const COMMENT_KIND = "Moment";
+
+interface CommentWidgetModule {
+  init(selector: string, props: { group: string; kind: string; name: string }): void;
+}
+
+let commentWidgetModule: Promise<CommentWidgetModule> | null = null;
+
+function loadCommentWidget(): Promise<CommentWidgetModule> {
+  if (!commentWidgetModule) {
+    // 评论插件会在 <head> 注入带版本号的 modulepreload，优先复用它，避免升级后命中旧缓存
+    const preload = qs<HTMLLinkElement>(
+      'link[rel="modulepreload"][href*="/plugins/PluginCommentWidget/"]',
+    );
+    const url = preload?.href ?? COMMENT_WIDGET_SCRIPT;
+    commentWidgetModule = import(/* @vite-ignore */ url)
+      .then((module) => module as unknown as CommentWidgetModule)
+      .catch((error: unknown) => {
+        commentWidgetModule = null;
+        throw error;
+      });
+  }
+  return commentWidgetModule;
+}
+
+async function mountMomentComment(container: HTMLElement, name: string) {
+  // 与插件 DefaultCommentWidget 的渲染结果保持一致：先给出挂载点，再交给评论组件接管
+  const domId = `comment-${COMMENT_GROUP}-${COMMENT_KIND}-${name}`.replace(
+    /[^\-_a-zA-Z0-9\s]/g,
+    "-",
+  );
+  const host = document.createElement("div");
+  host.id = domId;
+  container.replaceChildren(host);
+  try {
+    const widget = await loadCommentWidget();
+    widget.init(`#${domId}`, { group: COMMENT_GROUP, kind: COMMENT_KIND, name });
+  } catch {
+    container.textContent = "评论组件加载失败，请稍后重试。";
+  }
+}
+
+function initMomentComments(root: ParentNode = document) {
+  const dialog = qs<HTMLDialogElement>("#momentCommentDialog");
+  const body = dialog ? qs<HTMLElement>("[data-moment-comment-body]", dialog) : null;
+  if (!dialog || !body) return;
+
+  if (dialog.dataset.bound !== "true") {
+    dialog.dataset.bound = "true";
+    qs<HTMLElement>("[data-moment-comment-close]", dialog)?.addEventListener("click", () =>
+      dialog.close(),
+    );
+    // 点击弹层外的遮罩区域关闭
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    // 关闭后卸载评论组件，下次打开时按新的瞬间重新挂载
+    dialog.addEventListener("close", () => body.replaceChildren());
+  }
+
+  qsa<HTMLButtonElement>("[data-moment-comment]", root).forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    const name = button.dataset.momentComment;
+    if (!name) return;
+
+    button.addEventListener("click", () => {
+      dialog.showModal();
+      void mountMomentComment(body, name);
+    });
+  });
+}
+
 /* ---------------- 文章列表无刷新分页 ---------------- */
 function initListPagination() {
   const REGION = "[data-pager-region]";
@@ -655,6 +941,9 @@ function initListPagination() {
     if (region) {
       initArchiveCounts();
       initRelativeTimes();
+      initMomentTags(region);
+      initMomentUpvote(region);
+      initMomentComments(region);
     }
   };
 
@@ -734,7 +1023,12 @@ function boot() {
   initArchiveCounts();
   initHighlight();
   initLinkCaptcha();
+  initMomentUpvote();
+  initMomentTags();
+  initMomentComments();
   initListPagination();
+  document.addEventListener("click", handleMomentTagClick);
+  window.addEventListener("pageshow", resetMomentTagNavigation);
   window.addEventListener("load", initHighlight, { once: true });
 }
 

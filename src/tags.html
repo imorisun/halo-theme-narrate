@@ -16,30 +16,20 @@
 
   <div class="page-wrap container">
     <div class="link-stats">
-      <span><b th:text="${tags.total}">0</b> 个标签</span>
+      <span><b th:text="${#lists.size(tags)}">0</b> 个标签</span>
       <i></i>
-      <span th:text="|第 ${tags.page} / ${tags.totalPages} 页|">第 1 页</span>
+      <span>点击标签查看相关内容</span>
     </div>
 
-    <div class="tag-cloud tag-cloud--page" th:if="${not #lists.isEmpty(tags.items)}">
-      <a th:each="tag : ${tags.items}" th:href="@{${tag.status.permalink}}"
+    <div class="tag-cloud tag-cloud--page" th:if="${not #lists.isEmpty(tags)}">
+      <a th:each="tag : ${tags}" th:href="@{${tag.status.permalink}}"
         ><span th:text="${tag.spec.displayName}">标签</span><em th:text="${tag.postCount}">0</em></a
       >
     </div>
 
-    <div class="ff-empty" th:if="${#lists.isEmpty(tags.items)}">
+    <div class="ff-empty" th:if="${#lists.isEmpty(tags)}">
       <b>还没有标签</b>
       在 Halo Console 为文章添加标签后，这里会自动展示。
     </div>
-
-    <nav class="page-navigator" th:if="${tags.hasPrevious() or tags.hasNext()}">
-      <ul class="pagination">
-        <li th:if="${tags.hasPrevious()}">
-          <a th:href="@{${tags.prevUrl}}" aria-label="上一页">←</a>
-        </li>
-        <li class="current" th:text="${tags.page}">1</li>
-        <li th:if="${tags.hasNext()}"><a th:href="@{${tags.nextUrl}}" aria-label="下一页">→</a></li>
-      </ul>
-    </nav>
   </div>
 </include>

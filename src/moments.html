@@ -1,0 +1,247 @@
+<!--
+  瞬间列表页（plugin-moments 的 /moments 路由，模板名 moments.html）
+
+  可用变量：
+    moments — UrlContextListResult<MomentVo>，当前页瞬间分页结果
+    tags    — List<MomentTagVo>，全部瞬间标签（含 name / momentCount）
+  插件未安装时该模板不会被渲染。
+-->
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|瞬间 · ${site.title}|">瞬间 · Narrate</title>
+  </template>
+
+  <section class="page-hero">
+    <span class="page-hero__glyph" th:text="'瞬'">瞬</span>
+    <div class="container">
+      <div class="page-hero__kicker">MOMENT · 瞬间</div>
+      <h1 class="page-hero__title" th:text="${theme.config.home?.moments_title ?: '瞬间'}">瞬间</h1>
+      <p class="page-hero__sub" th:text="${theme.config.home?.moments_sub ?: '一些零碎的当下'}">
+        一些零碎的当下
+      </p>
+    </div>
+  </section>
+
+  <div class="page-wrap container">
+    <!-- 标签筛选：链接由插件提供，分页时保留 tag 参数 -->
+    <nav
+      class="moment-filter"
+      th:if="${tags != null and not #lists.isEmpty(tags)}"
+      aria-label="瞬间标签"
+    >
+      <a
+        class="moment-filter__item"
+        th:classappend="${param.tag != null and not #lists.isEmpty(param.tag)} ? 'is-active' : ''"
+        th:href="@{/moments}"
+        >全部</a
+      >
+      <a
+        class="moment-filter__item"
+        th:each="tag : ${tags}"
+        th:classappend="${param.tag != null and not #lists.isEmpty(param.tag) and #lists.contains(param.tag, tag.name)} ? 'is-active' : ''"
+        th:href="@{/moments(tag=${tag.name})}"
+      >
+        <span th:text="${tag.name}">标签</span>
+        <em th:text="${tag.momentCount}">0</em>
+      </a>
+    </nav>
+
+    <div class="link-stats" th:if="${!moments.last or moments.page > 1}">
+      <span><b th:text="${moments.total}">0</b> 条瞬间</span>
+      <i></i>
+      <span th:text="|第 ${moments.page} / ${moments.totalPages} 页|">第 1 页</span>
+    </div>
+
+    <div data-pager-region>
+      <div class="moment-list" th:if="${not #lists.isEmpty(moments.items)}">
+        <article
+          class="mcard"
+          th:each="moment : ${moments.items}"
+          th:with="content=${moment.spec.content}"
+        >
+          <header class="mcard__head">
+            <img
+              class="mcard__avatar"
+              th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+              th:src="${moment.owner.avatar}"
+              th:alt="${moment.owner.displayName}"
+              loading="lazy"
+            />
+            <img
+              class="mcard__avatar"
+              th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+              th:src="@{/assets/images/avatar.jpg}"
+              th:alt="${site.title}"
+              loading="lazy"
+            />
+            <span class="mcard__author" th:text="${moment.owner?.displayName ?: site.title}"
+              >作者</span
+            >
+            <time
+              class="mcard__time"
+              th:datetime="${moment.spec.releaseTime ?: moment.metadata.creationTimestamp}"
+              data-relative
+              th:text="${#temporals.format(moment.spec.releaseTime ?: moment.metadata.creationTimestamp, 'yyyy.MM.dd')}"
+              >2026.01.01</time
+            >
+          </header>
+
+          <div
+            class="mcard__text"
+            th:if="${not #strings.isEmpty(content.html)}"
+            th:utext="${content.html}"
+          ></div>
+
+          <div class="mcard__media" th:if="${not #lists.isEmpty(content.medium)}">
+            <a
+              class="mcard__thumb"
+              th:if="${content.medium[0].type.name == 'PHOTO' or content.medium[0].type.name == 'VIDEO'}"
+              th:href="@{/moments/{name}(name=${moment.metadata.name})}"
+            >
+              <img
+                th:if="${content.medium[0].type.name == 'PHOTO'}"
+                th:src="${content.medium[0].url}"
+                th:alt="${theme.config.home?.moments_title ?: '瞬间'}"
+                loading="lazy"
+                decoding="async"
+              />
+              <video
+                th:if="${content.medium[0].type.name == 'VIDEO'}"
+                th:src="${content.medium[0].url}"
+                preload="metadata"
+                muted
+              ></video>
+              <span
+                class="mcard__thumb-count"
+                th:if="${#lists.size(content.medium) > 1}"
+                th:text="|+${#lists.size(content.medium) - 1}|"
+                >+1</span
+              >
+            </a>
+            <audio
+              class="mcard__audio"
+              th:if="${content.medium[0].type.name == 'AUDIO'}"
+              th:src="${content.medium[0].url}"
+              controls
+              preload="metadata"
+            ></audio>
+          </div>
+
+          <!-- 标签：按 spec.tags 渲染，点击进入该标签的瞬间列表 -->
+          <div
+            class="moment-tags"
+            th:if="${moment.spec != null and moment.spec.tags != null and !moment.spec.tags.isEmpty()}"
+          >
+            <a
+              class="moment-tag"
+              rel="tag"
+              th:each="momentTag : ${moment.spec.tags}"
+              th:href="@{/moments(tag=${momentTag})}"
+              th:text="${momentTag}"
+              >标签</a
+            >
+          </div>
+
+          <footer class="mcard__foot">
+            <button
+              class="mcard__stat"
+              type="button"
+              th:attr="data-moment-upvote=${moment.metadata.name}"
+              aria-pressed="false"
+              aria-label="点赞"
+              title="点赞"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 20.4 4.6 13a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9A4.6 4.6 0 0 1 19.4 13Z" />
+              </svg>
+              <span data-moment-upvote-count th:text="${moment.stats?.upvote ?: 0}">0</span>
+            </button>
+            <button
+              class="mcard__stat"
+              type="button"
+              th:if="${haloCommentEnabled}"
+              th:attr="data-moment-comment=${moment.metadata.name}"
+              aria-haspopup="dialog"
+              aria-label="评论"
+              title="评论"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.4-.6L3 21l1.7-4.4A8.4 8.4 0 1 1 21 11.5Z"
+                />
+              </svg>
+              <span th:text="${moment.stats?.approvedComment ?: 0}">0</span>
+            </button>
+            <a
+              class="mcard__more"
+              th:href="@{/moments/{name}(name=${moment.metadata.name})}"
+              th:text="'查看 →'"
+              >查看 →</a
+            >
+          </footer>
+        </article>
+      </div>
+
+      <!-- 空状态：筛选后无结果或站点暂无瞬间 -->
+      <div class="moment-empty" th:if="${#lists.isEmpty(moments.items)}">
+        <span class="moment-empty__glyph" th:text="'瞬'">瞬</span>
+        <p
+          th:text="${param.tag != null and not #lists.isEmpty(param.tag) ? '这个标签下还没有瞬间，换个标签看看。' : '还没有发布任何瞬间。'}"
+        >
+          还没有发布任何瞬间。
+        </p>
+        <a
+          th:if="${param.tag != null and not #lists.isEmpty(param.tag)}"
+          th:href="@{/moments}"
+          th:text="'查看全部瞬间'"
+          >查看全部瞬间</a
+        >
+      </div>
+
+      <th:block th:with="pager=${moments}, pagerBase='/moments'">
+        <include src="pagination.html" />
+      </th:block>
+    </div>
+
+    <!-- 评论弹层：点击卡片评论按钮时挂载对应瞬间的评论组件 -->
+    <dialog class="moment-comment-dialog" id="momentCommentDialog" aria-label="瞬间评论">
+      <div class="moment-comment-dialog__head">
+        <span class="moment-comment-dialog__title">评论</span>
+        <button
+          class="moment-comment-dialog__close"
+          type="button"
+          data-moment-comment-close
+          aria-label="关闭"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+      <div class="moment-comment-dialog__body" data-moment-comment-body></div>
+    </dialog>
+  </div>
+</include>

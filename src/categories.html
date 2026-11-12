@@ -16,19 +16,14 @@
 
   <div class="page-wrap container">
     <div class="link-stats">
-      <span><b></b> 个分类</span>
+      <span><b th:text="${#lists.size(categories)}">0</b> 个分类</span>
       <i></i>
-      <span th:text="|共 ${categories.total} 项|">共 0 项</span>
+      <span>含二级分类 · 点击查看该分类下的文章</span>
     </div>
 
-    <div class="link-grid" th:if="${not #lists.isEmpty(categories.items)}">
-      <a
-        class="link-card reveal"
-        th:each="cat : ${categories.items}"
-        th:href="@{${cat.status.permalink}}"
-        th:attr="data-name=${cat.spec.displayName}"
-      >
-        <span class="link-card__index"></span>
+    <div class="link-grid" th:if="${not #lists.isEmpty(categories)}">
+      <div class="link-card reveal" th:each="cat : ${categories}">
+        <span class="link-card__index" aria-hidden="true"></span>
         <span class="link-card__arrow" aria-hidden="true">
           <svg
             viewBox="0 0 24 24"
@@ -41,42 +36,43 @@
             <path d="M7 17 17 7M8 7h9v9" />
           </svg>
         </span>
-        <div class="link-card__head">
-          <span
-            class="link-card__avatar"
-            th:text="${#strings.substring(cat.spec.displayName, 0, 1)}"
-            >分</span
-          >
-          <div class="link-card__intro">
-            <p class="link-card__name" th:text="${cat.spec.displayName}">分类</p>
-            <p class="link-card__host">
-              <i class="online"></i>
-              <span th:text="|${cat.postCount} 篇文章|">0 篇文章</span>
-            </p>
+        <a class="link-card__main" th:href="@{${cat.status.permalink}}">
+          <div class="link-card__head">
+            <span
+              class="link-card__avatar"
+              th:text="${#strings.substring(cat.spec.displayName, 0, 1)}"
+              >分</span
+            >
+            <div class="link-card__intro">
+              <p class="link-card__name" th:text="${cat.spec.displayName}">分类</p>
+              <p class="link-card__host">
+                <i class="online"></i>
+                <span th:text="|${cat.postCount ?: 0} 篇文章|">0 篇文章</span>
+              </p>
+            </div>
           </div>
+          <p
+            class="link-card__desc"
+            th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : (theme.config.home?.cat_default_desc ?: '收录这一类下的文字。')}"
+          ></p>
+        </a>
+        <!-- 二级分类：listAsTree() 只把子分类挂到 children，需要单独渲染，否则不会出现在列表中 -->
+        <div class="link-card__subs" th:if="${not #lists.isEmpty(cat.children)}">
+          <a
+            class="link-card__sub"
+            th:each="child : ${cat.children}"
+            th:href="@{${child.status.permalink}}"
+          >
+            <span th:text="${child.spec.displayName}">子分类</span>
+            <em th:text="${child.postCount ?: 0}">0</em>
+          </a>
         </div>
-        <p
-          class="link-card__desc"
-          th:text="${not #strings.isEmpty(cat.spec.description) ? cat.spec.description : (theme.config.home?.cat_default_desc ?: '收录这一类下的文字。')}"
-        ></p>
-      </a>
+      </div>
     </div>
 
-    <div class="ff-empty" th:if="${#lists.isEmpty(categories.items)}">
+    <div class="ff-empty" th:if="${#lists.isEmpty(categories)}">
       <b>还没有分类</b>
       在 Halo Console 创建分类后，这里会自动展示。
     </div>
-
-    <nav class="page-navigator" th:if="${categories.hasPrevious() or categories.hasNext()}">
-      <ul class="pagination">
-        <li th:if="${categories.hasPrevious()}">
-          <a th:href="@{${categories.prevUrl}}" aria-label="上一页">←</a>
-        </li>
-        <li class="current" th:text="${categories.page}">1</li>
-        <li th:if="${categories.hasNext()}">
-          <a th:href="@{${categories.nextUrl}}" aria-label="下一页">→</a>
-        </li>
-      </ul>
-    </nav>
   </div>
 </include>

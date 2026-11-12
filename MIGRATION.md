@@ -26,6 +26,8 @@
 │   ├── tags.html            # 标签总览
 │   ├── links.html           # 友情链接（plugin-links 路由 /links）
 │   ├── friends.html         # 朋友圈（plugin-friends 路由 /friends）
+│   ├── moment.html          # 瞬间详情（plugin-moments 路由 /moments/{name}）
+│   ├── moments.html         # 瞬间列表（plugin-moments 路由 /moments）
 │   ├── error.html           # 错误页
 │   ├── partials/            # 构建期片段（layout / sidebar）
 │   ├── css/                 # style.css、font.css、本地字体
@@ -39,19 +41,21 @@
 
 ### 模板映射
 
-| Typecho 源模板                      | Halo 模板                                    | 说明                                                      |
-| ----------------------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| `index.php`                         | `index.html`                                 | 首屏、精选、瞬间、分类导览                                |
-| `post.php`                          | `post.html`                                  | 正文、目录、版权、上下篇、评论                            |
-| `page.php`                          | `page.html`                                  | 独立页面 + 留言板模式                                     |
-| `about.php`                         | `page_about.html`                            | 通过 `theme.yaml` 的 `customTemplates` 注册为「关于」模板 |
-| `archive.php`                       | `category.html` / `tag.html` / `author.html` | 三类归档统一视觉                                          |
-| `archives.php`                      | `archives.html`                              | 按年月归档                                                |
-| `links.php`                         | `links.html`                                 | 由 `plugin-links` 提供 `/links` 路由与数据                |
-| `friends.php`                       | `friends.html`                               | 由 `plugin-friends` 提供 `/friends` 路由与数据            |
-| `public/include.php` + `footer.php` | `partials/layout.html`                       | 页头、页脚、主题初始化、`<halo:footer />`                 |
-| `public/sidebar.php`                | `partials/sidebar.html`                      | 侧栏组件                                                  |
-| `comments.php`                      | `<halo:comment>`                             | 交由 Halo 评论组件渲染                                    |
+| Typecho 源模板                      | Halo 模板                                    | 说明                                                            |
+| ----------------------------------- | -------------------------------------------- | --------------------------------------------------------------- |
+| `index.php`                         | `index.html`                                 | 首屏、精选、瞬间、分类导览                                      |
+| `post.php`                          | `post.html`                                  | 正文、目录、版权、上下篇、评论                                  |
+| `page.php`                          | `page.html`                                  | 独立页面 + 留言板模式                                           |
+| `about.php`                         | `page_about.html`                            | 通过 `theme.yaml` 的 `customTemplates` 注册为「关于」模板       |
+| `archive.php`                       | `category.html` / `tag.html` / `author.html` | 三类归档统一视觉                                                |
+| `archives.php`                      | `archives.html`                              | 按年月归档                                                      |
+| `links.php`                         | `links.html`                                 | 由 `plugin-links` 提供 `/links` 路由与数据                      |
+| `friends.php`                       | `friends.html`                               | 由 `plugin-friends` 提供 `/friends` 路由与数据                  |
+| —（插件路由）                       | `moment.html`                                | 覆盖 `plugin-moments` 的 `/moments/{name}` 详情页，含点赞与评论 |
+| —（插件路由）                       | `moments.html`                               | 覆盖 `plugin-moments` 的 `/moments` 列表页，含标签筛选与分页    |
+| `public/include.php` + `footer.php` | `partials/layout.html`                       | 页头、页脚、主题初始化、`<halo:footer />`                       |
+| `public/sidebar.php`                | `partials/sidebar.html`                      | 侧栏组件                                                        |
+| `comments.php`                      | `<halo:comment>`                             | 交由 Halo 评论组件渲染                                          |
 
 ---
 

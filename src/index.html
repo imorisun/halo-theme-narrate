@@ -130,12 +130,7 @@
     </div>
   </th:block>
 
-  <section
-    class="spotlight container"
-    id="latest"
-    data-pager-region
-    th:if="${not #lists.isEmpty(posts.items)}"
-  >
+  <section class="spotlight container" id="latest" th:if="${not #lists.isEmpty(posts.items)}">
     <div class="spotlight__grid">
       <th:block th:each="post, iterStat : ${posts.items}" th:if="${iterStat.index == 0}">
         <th:block
@@ -226,10 +221,6 @@
         </th:block>
       </div>
     </div>
-
-    <th:block th:with="pager=${posts}, pagerBase='/'">
-      <include src="pagination.html" />
-    </th:block>
   </section>
 
   <!-- 瞬间：数据来自「瞬间」插件（PluginMoments），由主题设置中的开关控制显隐 -->

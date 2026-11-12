@@ -16,6 +16,8 @@ export default defineConfig({
     ignorePatterns: [".agents", ".trae"],
   },
   staged: {
-    "*": ["vp check"],
+    // 仅暂存 HTML / CSS / Markdown 等非脚本文件时，lint 没有可检查的目标，
+    // 需要忽略空匹配，否则 pre-commit 会误判失败
+    "*": ["vp check --no-error-on-unmatched-pattern"],
   },
 });

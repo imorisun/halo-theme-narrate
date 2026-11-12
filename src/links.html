@@ -16,67 +16,65 @@
 
   <div class="page-wrap container">
     <div class="link-stats">
-      <span><b></b> 个站点</span>
-      <i></i>
-      <div class="links_sort_menu" th:if="${not #lists.isEmpty(groups)}">
+      <span><b th:text="${#lists.size(links)}">0</b> 个站点</span>
+      <i th:if="${not #lists.isEmpty(simpleGroups)}"></i>
+      <div class="links_sort_menu" th:if="${not #lists.isEmpty(simpleGroups)}">
         <button type="button" class="active" data-filter="all" th:text="'全部'">全部</button>
         <button
           type="button"
-          th:each="group : ${groups}"
-          th:attr="data-filter=${group.spec.displayName}"
-          th:text="${group.spec.displayName}"
+          th:each="item : ${simpleGroups}"
+          th:attr="data-filter=${item.metadata.name}"
+          th:text="${item.spec.displayName}"
         ></button>
       </div>
     </div>
 
     <div class="link-grid" th:if="${not #lists.isEmpty(links)}">
-      <th:block th:each="group : ${groups}">
-        <a
-          class="link-card reveal"
-          th:each="link : ${group.links}"
-          th:href="${link.spec.url}"
-          target="_blank"
-          rel="noopener noreferrer"
-          th:attr="data-name=${link.spec.displayName},data-group=${group.spec.displayName}"
-        >
-          <span class="link-card__index"></span>
-          <span class="link-card__arrow" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M7 17 17 7M8 7h9v9" />
-            </svg>
-          </span>
-          <div class="link-card__head">
-            <img
-              class="link-card__avatar"
-              th:if="${not #strings.isEmpty(link.spec.logo)}"
-              th:src="${link.spec.logo}"
-              th:alt="${link.spec.displayName}"
-              loading="lazy"
-            />
-            <span
-              class="link-card__avatar"
-              th:if="${#strings.isEmpty(link.spec.logo)}"
-              th:text="${#strings.substring(link.spec.displayName, 0, 1)}"
-            ></span>
-            <div class="link-card__intro">
-              <p class="link-card__name" th:text="${link.spec.displayName}">站点</p>
-              <p class="link-card__host"><i></i><span class="js-host"></span></p>
-            </div>
+      <a
+        class="link-card reveal"
+        th:each="link : ${links}"
+        th:href="${link.spec.url}"
+        target="_blank"
+        rel="noopener noreferrer"
+        th:attr="data-name=${link.spec.displayName},data-group=${link.spec.groupName ?: ''}"
+      >
+        <span class="link-card__index" aria-hidden="true"></span>
+        <span class="link-card__arrow" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M7 17 17 7M8 7h9v9" />
+          </svg>
+        </span>
+        <div class="link-card__head">
+          <img
+            class="link-card__avatar"
+            th:if="${not #strings.isEmpty(link.spec.logo)}"
+            th:src="${link.spec.logo}"
+            th:alt="${link.spec.displayName}"
+            loading="lazy"
+          />
+          <span
+            class="link-card__avatar"
+            th:if="${#strings.isEmpty(link.spec.logo)}"
+            th:text="${#strings.substring(link.spec.displayName, 0, 1)}"
+          ></span>
+          <div class="link-card__intro">
+            <p class="link-card__name" th:text="${link.spec.displayName}">站点</p>
+            <p class="link-card__host"><i></i><span class="js-host"></span></p>
           </div>
-          <p
-            class="link-card__desc"
-            th:if="${not #strings.isEmpty(link.spec.description)}"
-            th:text="${link.spec.description}"
-          ></p>
-        </a>
-      </th:block>
+        </div>
+        <p
+          class="link-card__desc"
+          th:if="${not #strings.isEmpty(link.spec.description)}"
+          th:text="${link.spec.description}"
+        ></p>
+      </a>
     </div>
 
     <div class="ff-empty" th:if="${#lists.isEmpty(links)}">
@@ -117,12 +115,26 @@
       </div>
 
       <th:block th:if="${linkApplicationEnabled}">
-        <div class="link-apply__notice" th:if="${param.applied != null}">
-          <b>申请已提交</b>
-          <span
-            th:text="${param.message != null ? param.message[0] : '请等待站长审核，通过后会出现在友链列表中。'}"
-          ></span>
-        </div>
+        <!-- Halo 的 param 对不存在的参数返回空集合而非 null，必须同时判空与判空集合，否则 [0] 会抛 EL1025E -->
+        <th:block
+          th:with="
+            appliedState=${param.applied != null and not #lists.isEmpty(param.applied) ? param.applied[0] : ''},
+            appliedMessage=${param.message != null and not #lists.isEmpty(param.message) ? param.message[0] : ''}"
+        >
+          <div
+            class="link-apply__notice"
+            th:if="${appliedState == 'success' or appliedState == 'error' or appliedState == 'disabled'}"
+            th:classappend="${appliedState == 'success' ? 'is-success' : (appliedState == 'disabled' ? 'is-disabled' : 'is-error')}"
+          >
+            <b
+              th:text="${appliedState == 'success' ? '申请已提交' : (appliedState == 'disabled' ? '暂未开放申请' : '提交失败')}"
+              >申请已提交</b
+            >
+            <span
+              th:text="${not #strings.isEmpty(appliedMessage) ? appliedMessage : (appliedState == 'success' ? '请等待站长审核，通过后会出现在友链列表中。' : '请检查填写内容后重新提交。')}"
+            ></span>
+          </div>
+        </th:block>
 
         <form class="link-apply__form" th:action="@{/links/apply/submit}" method="post">
           <input type="hidden" name="_csrf" th:value="${csrfToken}" />
@@ -149,7 +161,7 @@
           <label class="link-apply__full">
             <span>验证码</span>
             <span class="link-apply__captcha">
-              <input type="text" name="captcha" required maxlength="8" autocomplete="off" />
+              <input type="text" name="captchaCode" required maxlength="8" autocomplete="off" />
               <img
                 id="link-application-captcha"
                 th:src="@{/links/apply/captcha}"
