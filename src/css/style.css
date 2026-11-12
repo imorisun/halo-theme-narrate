@@ -1052,6 +1052,8 @@ body::after {
   flex: 0 0 350px;
   scroll-snap-align: start;
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   padding: 20px 22px 18px;
@@ -1061,17 +1063,22 @@ body::after {
   transform: translateY(-4px);
   box-shadow: var(--shadow);
 }
-.moment__text {
+.moment__body {
+  /* 文案与图片共用同一滚动区域，卡片高度不再随图片被撑大 */
   height: 120px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.moment__body::-webkit-scrollbar {
+  width: 0;
+}
+.moment__text {
   margin-block-end: 1rem;
   font-family: var(--font-sans);
   font-size: 14.5px;
   line-height: 1.85;
   color: var(--text-soft);
-}
-.moment__text::-webkit-scrollbar {
-  width: 0;
 }
 .moment-time {
   font-size: 11.5px;
@@ -1122,7 +1129,9 @@ body::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-block-start: 0.5rem;
+  /* 卡片等高时把页脚压到底部，避免下方出现大片留白 */
+  margin-block-start: auto;
+  padding-block-start: 12px;
 }
 
 /* 横滑末端的「查看全部」卡片 */
