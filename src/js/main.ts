@@ -242,6 +242,27 @@ function initMoments() {
   const track = qs<HTMLElement>(".moments__track");
   if (!track) return;
 
+  // 卡片内滚动条仅在滚动时显示，停止滚动后隐藏
+  const timers = new WeakMap<HTMLElement, number>();
+  qsa<HTMLElement>(".moment__body", track).forEach((body) => {
+    body.addEventListener(
+      "scroll",
+      () => {
+        body.classList.add("is-scrolling");
+        const timer = timers.get(body);
+        if (timer) window.clearTimeout(timer);
+        timers.set(
+          body,
+          window.setTimeout(() => {
+            body.classList.remove("is-scrolling");
+            timers.delete(body);
+          }, 800),
+        );
+      },
+      { passive: true },
+    );
+  });
+
   const step = () => Math.min(track.clientWidth * 0.8, 640);
   qs<HTMLButtonElement>("#momPrev")?.addEventListener("click", () => {
     track.scrollBy({ left: -step(), behavior: prefersReducedMotion ? "auto" : "smooth" });

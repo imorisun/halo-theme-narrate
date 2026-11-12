@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    Narrate · 叙  —  Halo Theme Stylesheet
    Fusion of d-d.design (孤斗) & thyuu.com (风记星辰)
    Design language: 简约 / 优雅 / 阅读优先 / 编辑杂志感
@@ -1068,10 +1068,29 @@ body::after {
   height: 120px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: none;
+  /* 细滚动条：Firefox，默认透明，滚动时由 JS 添加 is-scrolling 显示 */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
+/* 细滚动条：WebKit / Blink，仅滚动时显示，配色沿用主题变量 */
 .moment__body::-webkit-scrollbar {
-  width: 0;
+  width: 4px;
+}
+.moment__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.moment__body::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+.moment__body.is-scrolling {
+  scrollbar-color: var(--border-strong) transparent;
+}
+.moment__body.is-scrolling::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+}
+.moment:hover .moment__body.is-scrolling::-webkit-scrollbar-thumb {
+  background: var(--accent);
 }
 .moment__text {
   margin-block-end: 1rem;
@@ -2749,6 +2768,17 @@ button.mcard__stat:hover svg {
   color: var(--accent);
   padding-left: 4px;
 }
+/* 友链文本：限制最大宽度（约 20 个汉字），超长以省略号截断；完整标题由 title 属性提供 */
+.footer-links--friends li {
+  min-width: 0;
+}
+.footer-links--friends a {
+  display: block;
+  max-width: 20em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
 /* 底部行：版权声明、驱动信息与备案链接统一由同一组件渲染 */
 .footer-bottom {
@@ -4176,9 +4206,9 @@ body.lightbox-open {
   }
 }
 
-/* 无目录文章：正文收窄到阅读宽度并整体居中 */
+/* 无目录文章：正文采用舒适的阅读宽度并居中，与带目录文章的正文栏宽保持接近 */
 .post--no-toc {
-  grid-template-columns: minmax(0, 720px);
+  grid-template-columns: minmax(0, 860px);
   justify-content: center;
 }
 .post--no-toc .toc {

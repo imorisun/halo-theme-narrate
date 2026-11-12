@@ -198,11 +198,12 @@
         <!-- 友链：来自「链接管理」插件，随机展示数量由主题设置控制；未安装插件时不展示该列 -->
         <div class="footer-col" th:if="${pluginFinder.available('PluginLinks')}">
           <h3 class="footer-col__title" th:text="'友链'">友链</h3>
-          <ul class="footer-links">
+          <ul class="footer-links footer-links--friends">
             <li th:each="link : ${linkFinder.random(theme.config.links?.footer_links_limit ?: 8)}">
               <a
                 th:href="${link.spec.url}"
                 th:text="${link.spec.displayName}"
+                th:title="${link.spec.displayName}"
                 target="_blank"
                 rel="noopener noreferrer"
               ></a>
