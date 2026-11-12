@@ -17,21 +17,30 @@
       th:with="content=${moment.spec.content}"
     >
       <header class="moment-detail__head">
-        <img
-          class="moment-detail__avatar"
-          th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
-          th:src="${moment.owner.avatar}"
-          th:alt="${moment.owner.displayName}"
-        />
-        <img
-          class="moment-detail__avatar"
-          th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
-          th:src="@{/assets/images/avatar.jpg}"
-          th:alt="${site.title}"
-        />
+        <!-- 头像与昵称同为作者页入口 -->
+        <a
+          class="moment-detail__avatar-link"
+          th:href="@{/authors/{name}(name=${moment.owner.name})}"
+        >
+          <img
+            class="moment-detail__avatar"
+            th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+            th:src="${moment.owner.avatar}"
+            th:alt="${moment.owner.displayName}"
+          />
+          <img
+            class="moment-detail__avatar"
+            th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+            th:src="@{/assets/images/avatar.jpg}"
+            th:alt="${site.title}"
+          />
+        </a>
         <div class="moment-detail__meta">
-          <span class="moment-detail__author" th:text="${moment.owner?.displayName ?: site.title}"
-            >作者</span
+          <a
+            class="moment-detail__author"
+            th:href="@{/authors/{name}(name=${moment.owner.name})}"
+            th:text="${moment.owner?.displayName ?: site.title}"
+            >作者</a
           >
           <time
             class="moment-detail__time"

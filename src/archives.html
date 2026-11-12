@@ -43,11 +43,13 @@
                 th:href="@{${post.status.permalink}}"
                 th:text="${post.spec.title}"
               ></a>
-              <span
-                class="archive-item__cat"
-                th:if="${not #lists.isEmpty(post.categories)}"
-                th:text="${post.categories[0].spec.displayName}"
-              ></span>
+              <span class="archive-item__cat" th:if="${not #lists.isEmpty(post.categories)}">
+                <a
+                  th:each="cat : ${post.categories}"
+                  th:href="@{${cat.status.permalink}}"
+                  th:text="${cat.spec.displayName}"
+                ></a>
+              </span>
             </li>
           </ul>
         </th:block>

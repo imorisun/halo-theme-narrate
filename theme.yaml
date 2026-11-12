@@ -1,7 +1,6 @@
 apiVersion: theme.halo.run/v1alpha1
 kind: Theme
 metadata:
-  # 固定标识：Halo 主题唯一名称，安装后不可变更，同时决定静态资源前缀 /themes/halo-theme-narrate/
   name: halo-theme-narrate
   annotations:
     "store.halo.run/app-id": "app-ewy4rn2c"
@@ -11,14 +10,14 @@ spec:
     name: 晨阳
     website: https://www.puresky.top/
   description: 移植自 Typecho 主题 Narrate · 叙的 Halo 2 版本：简约、优雅、阅读优先的编辑杂志风博客主题，支持深色模式、首页精选、瞬间、分类导览、文章目录与链接/朋友圈插件页面。
-  logo: https://raw.githubusercontent.com/imorisun/halo-theme-narrate/main/icon.png
+  logo: /themes/halo-theme-narrate/assets/images/icon.png
   homepage: https://github.com/imorisun/halo-theme-narrate#readme
   repo: https://github.com/imorisun/halo-theme-narrate
   issues: https://github.com/imorisun/halo-theme-narrate/issues
   settingName: "narrate-setting"
   configMapName: "narrate-configMap"
-  version: 1.0.0
-  requires: ">=2.22.0"
+  version: 1.0.1
+  requires: ">=2.27.0"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/imorisun/halo-theme-narrate/blob/main/LICENSE"
@@ -26,5 +25,4 @@ spec:
     page:
       - name: 关于
         description: 关于页面：个人卡片、站点统计、正文与站点信息
-        screenshot:
         file: page_about.html

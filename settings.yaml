@@ -12,6 +12,26 @@ spec:
           label: 站点标语
           help: 首页首屏、关于页与友链页的简介文案；留空时优先使用 Halo 系统设置中的站点副标题。
           value: ""
+        - $formkit: text
+          name: brand_en_slogan
+          label: 站点英文标语
+          help: 显示在页头与页脚站点名称下方；留空时使用 SERENE。
+          value: "SERENE"
+        - $formkit: text
+          name: hero_glyph
+          label: 首屏背景大字
+          help: 首页首屏背景的巨幅描边字符，页脚品牌区沿用同一字符；留空时使用「叙」。
+          value: "叙"
+        - $formkit: text
+          name: hero_kicker
+          label: 首屏眉题
+          help: 首页首屏主张句上方的短标签；留空时使用「叙 · 个人博客」。
+          value: "叙 · 个人博客"
+        - $formkit: text
+          name: footer_tagline
+          label: 页脚站点标语
+          help: 页脚站点名称下方的一行文字；留空时使用 Narrate · 以文为名。
+          value: "Narrate · 以文为名"
         - $formkit: switch
           name: enable_web_font
           label: 启用在线中文字体

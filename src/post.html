@@ -12,15 +12,20 @@
     <span class="post-hero__glyph" th:text="${#strings.substring(post.spec.title, 0, 1)}">叙</span>
     <div class="post-hero__inner container">
       <div class="post-hero__kicker">
+        <!-- 多分类：逐一渲染并保留分类链接，分类间以间隔点分隔 -->
         <th:block th:if="${not #lists.isEmpty(post.categories)}">
-          <a
-            class="cat"
-            th:href="@{${post.categories[0].status.permalink}}"
-            th:text="${post.categories[0].spec.displayName}"
-            >分类</a
-          >
+          <span class="post-hero__cats">
+            <th:block th:each="cat, catStat : ${post.categories}">
+              <a class="cat" th:href="@{${cat.status.permalink}}" th:text="${cat.spec.displayName}"
+                >分类</a
+              >
+              <span class="cat-sep" th:if="${!catStat.last}" aria-hidden="true">·</span>
+            </th:block>
+          </span>
           <span class="rule"></span>
-          <span class="en" th:text="${#strings.toUpperCase(post.categories[0].spec.slug)}"
+          <span
+            class="en"
+            th:text="${#lists.size(post.categories) > 1 ? 'CATEGORIES' : #strings.toUpperCase(post.categories[0].spec.slug)}"
             >CATEGORY</span
           >
         </th:block>
@@ -35,7 +40,8 @@
       <h1 class="post-hero__title" th:text="${post.spec.title}">文章标题</h1>
 
       <div class="post-hero__meta">
-        <span class="who">
+        <!-- 头像与昵称同为作者页入口 -->
+        <a class="who" th:href="@{${post.owner.permalink}}">
           <img
             class="avatar"
             th:if="${not #strings.isEmpty(post.owner?.avatar)}"
@@ -50,7 +56,7 @@
             th:alt="${site.title}"
           />
           <b th:text="${post.owner?.displayName ?: site.title}">作者</b>
-        </span>
+        </a>
         <span class="sep-dot"></span>
         <time
           class="mv"

@@ -58,23 +58,26 @@
           th:with="content=${moment.spec.content}"
         >
           <header class="mcard__head">
-            <img
-              class="mcard__avatar"
-              th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
-              th:src="${moment.owner.avatar}"
-              th:alt="${moment.owner.displayName}"
-              loading="lazy"
-            />
-            <img
-              class="mcard__avatar"
-              th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
-              th:src="@{/assets/images/avatar.jpg}"
-              th:alt="${site.title}"
-              loading="lazy"
-            />
-            <span class="mcard__author" th:text="${moment.owner?.displayName ?: site.title}"
-              >作者</span
-            >
+            <!-- 头像与昵称同为作者页入口 -->
+            <a class="mcard__author-link" th:href="@{/authors/{name}(name=${moment.owner.name})}">
+              <img
+                class="mcard__avatar"
+                th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+                th:src="${moment.owner.avatar}"
+                th:alt="${moment.owner.displayName}"
+                loading="lazy"
+              />
+              <img
+                class="mcard__avatar"
+                th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+                th:src="@{/assets/images/avatar.jpg}"
+                th:alt="${site.title}"
+                loading="lazy"
+              />
+              <span class="mcard__author" th:text="${moment.owner?.displayName ?: site.title}"
+                >作者</span
+              >
+            </a>
             <time
               class="mcard__time"
               th:datetime="${moment.spec.releaseTime ?: moment.metadata.creationTimestamp}"

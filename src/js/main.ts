@@ -24,6 +24,8 @@ function initThemeToggle() {
 
   const sync = () => {
     const dark = root.getAttribute("data-theme") === "dark";
+    // Halo 插件组件（评论 / 搜索等）通过该属性读取当前配色
+    root.setAttribute("data-color-scheme", dark ? "dark" : "light");
     if (sun) sun.style.display = dark ? "none" : "block";
     if (moon) moon.style.display = dark ? "block" : "none";
   };

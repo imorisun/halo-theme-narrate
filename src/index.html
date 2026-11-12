@@ -4,11 +4,18 @@
   </template>
 
   <section class="hero">
-    <span class="hero__glyph">叙</span>
+    <span
+      class="hero__glyph"
+      th:text="${#strings.isEmpty(theme.config.brand?.hero_glyph) ? '叙' : theme.config.brand.hero_glyph}"
+      >叙</span
+    >
     <div class="hero__inner container">
       <div class="hero__kicker">
         <span class="pulse"></span>
-        <span>叙 · 个人博客</span>
+        <span
+          th:text="${#strings.isEmpty(theme.config.brand?.hero_kicker) ? '叙 · 个人博客' : theme.config.brand.hero_kicker}"
+          >叙 · 个人博客</span
+        >
       </div>
 
       <!-- 主张句用 {rot} 标记旋转词位置；注意 #strings.arraySplit 基于 StringTokenizer（按字符集合切分），
@@ -108,10 +115,16 @@
       <span class="statusbar__sep"></span>
       <div class="statusbar__cell statusbar__latest" th:if="${not #lists.isEmpty(posts.items)}">
         <span class="now-label">最新</span>
-        <a
-          th:href="@{${posts.items[0].status.permalink}}"
-          th:text="${posts.items[0].spec.title}"
-        ></a>
+        <!-- 单独按发布时间查询，避免沿用列表默认排序（置顶优先）而显示成置顶文章 -->
+        <th:block
+          th:with="latest=${postFinder.list({page: 1, size: 1, sort: {'spec.publishTime,desc'}})}"
+        >
+          <a
+            th:if="${not #lists.isEmpty(latest.items)}"
+            th:href="@{${latest.items[0].status.permalink}}"
+            th:text="${latest.items[0].spec.title}"
+          ></a>
+        </th:block>
       </div>
     </div>
   </div>
@@ -129,8 +142,7 @@
     <div class="spotlight__grid">
       <th:block th:each="post, iterStat : ${posts.items}" th:if="${iterStat.index == 0}">
         <th:block
-          th:with="cat=${not #lists.isEmpty(post.categories) ? post.categories[0] : null},
-                   cover=${post.spec.cover},
+          th:with="cover=${post.spec.cover},
                    phClass=${'ph--' + #strings.arraySplit('a,b,c,d,e', ',')[iterStat.index % 5]}"
         >
           <a class="spotlight-main" th:href="@{${post.status.permalink}}">
@@ -149,11 +161,13 @@
             </div>
             <!-- 角标固定在封面右上角；分类标签固定在左上角，样式沿用源主题的分类 pill -->
             <span class="spotlight-main__flag" th:if="${post.spec.pinned}">置顶精选</span>
-            <span
-              class="tag spotlight-main__cat"
-              th:if="${cat != null}"
-              th:text="${cat.spec.displayName}"
-            ></span>
+            <!-- 多分类：封面左上角的分类标签内联展示全部分类 -->
+            <span class="tag spotlight-main__cat" th:if="${not #lists.isEmpty(post.categories)}">
+              <th:block th:each="cat, catStat : ${post.categories}">
+                <span th:text="${cat.spec.displayName}"></span>
+                <span class="cat-sep" th:if="${!catStat.last}" aria-hidden="true">·</span>
+              </th:block>
+            </span>
             <div class="spotlight-main__body">
               <h2 class="spotlight-main__title" th:text="${post.spec.title}"></h2>
               <p class="spotlight-main__excerpt" th:text="${post.status.excerpt}"></p>
@@ -189,10 +203,13 @@
                   th:datetime="${post.spec.publishTime}"
                   th:text="${#temporals.format(post.spec.publishTime, 'MM.dd')}"
                 ></time>
-                <span
-                  th:if="${not #lists.isEmpty(post.categories)}"
-                  th:text="| · ${post.categories[0].spec.displayName}|"
-                ></span>
+                <span class="post-cats-inline" th:if="${not #lists.isEmpty(post.categories)}">
+                  <span class="cat-sep" aria-hidden="true">·</span>
+                  <th:block th:each="cat, catStat : ${post.categories}">
+                    <span th:text="${cat.spec.displayName}"></span>
+                    <span class="cat-sep" th:if="${!catStat.last}" aria-hidden="true">·</span>
+                  </th:block>
+                </span>
               </div>
             </div>
             <span class="rank-item__arrow">

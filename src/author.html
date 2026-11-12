@@ -56,10 +56,13 @@
               th:datetime="${post.spec.publishTime}"
               th:text="${#temporals.format(post.spec.publishTime, 'yyyy.MM.dd')}"
             ></time>
-            <span
-              th:if="${not #lists.isEmpty(post.categories)}"
-              th:text="| · ${post.categories[0].spec.displayName}|"
-            ></span>
+            <span class="post-cats-inline" th:if="${not #lists.isEmpty(post.categories)}">
+              <span class="cat-sep" aria-hidden="true">·</span>
+              <th:block th:each="cat, catStat : ${post.categories}">
+                <span th:text="${cat.spec.displayName}"></span>
+                <span class="cat-sep" th:if="${!catStat.last}" aria-hidden="true">·</span>
+              </th:block>
+            </span>
           </div>
         </div>
         <span class="cat-row__thumb">
