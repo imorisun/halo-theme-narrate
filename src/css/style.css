@@ -2014,80 +2014,54 @@ button.mcard__stat:hover svg {
   border-color: var(--accent);
 }
 
-/* ---------- 无刷新分页：加载遮罩与失败重试 ---------- */
-[data-pager-region] {
-  position: relative;
+/* ---------- Swup 页面过渡 ---------- */
+html.swup-enabled.is-changing .transition-main {
+  transition:
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
 }
-[data-pager-region].is-loading > :not(.pager-loading) {
-  opacity: 0.35;
-  transition: opacity 0.2s;
+html.swup-enabled.is-changing.is-leaving .transition-main {
+  opacity: 0;
+  transform: translate3d(0, -10px, 0);
 }
-[data-pager-region].is-loading .page-navigator {
-  pointer-events: none;
+html.swup-enabled.is-rendering .transition-main {
+  animation: narrate-page-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
-.pager-loading {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: color-mix(in srgb, var(--bg) 62%, transparent);
-  color: var(--text-muted);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-}
-.pager-loading[hidden] {
-  display: none;
-}
-.pager-spinner {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  animation: pagerSpin 0.7s linear infinite;
-}
-@keyframes pagerSpin {
+@keyframes narrate-page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: none;
   }
 }
-.pager-error {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 20px;
-  padding: 14px 18px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: 13.5px;
+
+/* 分页跳转后滚动到列表区域时预留页头高度 */
+#pager-region,
+#comments,
+.post-content :is(h1, h2, h3, h4)[id] {
+  scroll-margin-top: calc(var(--header-h, 72px) + 16px);
 }
-.pager-error p {
-  margin: 0;
+
+/* Swup 顶部进度条 */
+.narrate-progress {
+  height: 2px !important;
+  background: var(--accent) !important;
+  z-index: 90 !important;
 }
-.pager-retry {
-  padding: 6px 14px;
-  border: 1px solid var(--accent-line);
-  background: var(--accent-soft);
-  color: var(--accent);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-.pager-retry:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
-}
+
 @media (prefers-reduced-motion: reduce) {
-  .pager-spinner {
-    animation-duration: 1.6s;
+  html.swup-enabled.is-changing .transition-main {
+    transition: none !important;
+  }
+  html.swup-enabled.is-rendering .transition-main {
+    animation: none !important;
+  }
+  .narrate-progress {
+    transition: none !important;
   }
 }
 

@@ -8,6 +8,13 @@
     "prepare": "vp config",
     "skills:update": "npx skills update"
   },
+  "dependencies": {
+    "@swup/a11y-plugin": "^5.2.1",
+    "@swup/head-plugin": "^2.3.1",
+    "@swup/preload-plugin": "^3.2.12",
+    "@swup/progress-plugin": "^3.2.0",
+    "swup": "^4.10.0"
+  },
   "devDependencies": {
     "@halo-dev/theme-package-cli": "^1.1.1",
     "@halo-dev/vite-plugin-halo-theme": "^1.0.3",

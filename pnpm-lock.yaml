@@ -11,6 +11,22 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      '@swup/a11y-plugin':
+        specifier: ^5.2.1
+        version: 5.2.1(swup@4.10.0)
+      '@swup/head-plugin':
+        specifier: ^2.3.1
+        version: 2.3.1(swup@4.10.0)
+      '@swup/preload-plugin':
+        specifier: ^3.2.12
+        version: 3.2.12(swup@4.10.0)
+      '@swup/progress-plugin':
+        specifier: ^3.2.0
+        version: 3.2.0(swup@4.10.0)
+      swup:
+        specifier: ^4.10.0
+        version: 4.10.0
     devDependencies:
       '@halo-dev/theme-package-cli':
         specifier: ^1.1.1
@@ -342,6 +358,29 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
+  '@swup/a11y-plugin@5.2.1':
+    resolution: {integrity: sha512-n7gphzG+LBuE1RZVYpMxVELqDVFtUNhbehoVZsUiKXaAEkQV64YASe42XmffRnwzmLVtNHBFOSUKd21whctUBg==}
+    peerDependencies:
+      swup: ^4.0.0
+
+  '@swup/head-plugin@2.3.1':
+    resolution: {integrity: sha512-kdv60fO9c0/3+K40f7Fj/uV34nSuuPeCsld83J5uVVFizOmoovA737C5M1Iqac5Spf2GLU7q+mhN6AbohSIBjA==}
+    peerDependencies:
+      swup: ^4.6.0
+
+  '@swup/plugin@4.0.0':
+    resolution: {integrity: sha512-3Kq31BJxnzoPg643YxGoWQggoU6VPKZpdE5CqqmP7wwkpCYTzkRmrfcQ29mGhsSS7xfS7D33iZoBiwY+wPoo2A==}
+
+  '@swup/preload-plugin@3.2.12':
+    resolution: {integrity: sha512-syDXSjN9ltEenkAhOtRx0yxJWNBSmZncZUNmiuZbtoImdwMTL6/GJue1LOCzRxemOE1wttui1SkgqJyEcu6UIA==}
+    peerDependencies:
+      swup: ^4.0.0
+
+  '@swup/progress-plugin@3.2.0':
+    resolution: {integrity: sha512-Ur+D4+aee9swR6pn7JbEyGMwVP1BTcN5ygjlno7IaSQ/vMZbuJ73po1RkKlIi86p+/PZ+1kynkH4K4eMZuHKKg==}
+    peerDependencies:
+      swup: ^4.0.0
+
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
@@ -607,6 +646,9 @@ packages:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
 
+  delegate-it@6.4.0:
+    resolution: {integrity: sha512-NbMljKgnyvQQFLRx3hjPs2x++R3GzIZgvtINq/Q7PzxiC58CSG+N2RT8x4qF7JhkFZI4h9zZ1BszoJYdYREkbA==}
+
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
@@ -662,6 +704,9 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  focus-options-polyfill@1.6.0:
+    resolution: {integrity: sha512-uyrAmLZrPnUItQY5wTdg31TO9GGZRGsh/jmohUg9oLmLi/sw5y7LlTV/mwyd6rvbxIOGwmRiv6LcTS8w7Bk9NQ==}
 
   follow-redirects@1.16.0:
     resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
@@ -915,6 +960,9 @@ packages:
     resolution: {integrity: sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==}
     engines: {node: '>=16 || 14 >=14.18'}
 
+  path-to-regexp@6.3.0:
+    resolution: {integrity: sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==}
+
   path@0.12.7:
     resolution: {integrity: sha512-aXXC6s+1w7otVF9UletFkFcDsJeO7lSZBPUQhtb5O0xJe8LtYhj/GxldoL09bBj9+ZmE2hNoHqQSFMN5fikh4Q==}
 
@@ -1032,6 +1080,9 @@ packages:
     resolution: {integrity: sha512-iq6eVVI64nQQTRYq2KtEg2d2uU7LElhTJwsH4YzIHZshxlgZms/wIc4VoDQTlG/IvVIrBKG06CrZnp0qv7hkcQ==}
     engines: {node: '>=12'}
 
+  swup@4.10.0:
+    resolution: {integrity: sha512-bzl5u94ovy5YDc+6No28De2TgMWK47Ym0uuMpN9kmzu+NWm3/mhQrmRPjArsFpfVTWO1nMFUZrKRwpRjS6eNJg==}
+
   tar-stream@3.1.7:
     resolution: {integrity: sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==}
 
@@ -1056,6 +1107,9 @@ packages:
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
+
+  typed-query-selector@2.12.3:
+    resolution: {integrity: sha512-/dtuMZyutHLlrxWhhC1uib00ELUr2dZ8C9B8YzZYsJmeE3V56OxRblrSM2UaF142pcMtak7ehZ6+poWGeehNIg==}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -1286,6 +1340,31 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
+  '@swup/a11y-plugin@5.2.1(swup@4.10.0)':
+    dependencies:
+      '@swup/plugin': 4.0.0
+      focus-options-polyfill: 1.6.0
+      swup: 4.10.0
+
+  '@swup/head-plugin@2.3.1(swup@4.10.0)':
+    dependencies:
+      '@swup/plugin': 4.0.0
+      swup: 4.10.0
+
+  '@swup/plugin@4.0.0':
+    dependencies:
+      swup: 4.10.0
+
+  '@swup/preload-plugin@3.2.12(swup@4.10.0)':
+    dependencies:
+      '@swup/plugin': 4.0.0
+      swup: 4.10.0
+
+  '@swup/progress-plugin@3.2.0(swup@4.10.0)':
+    dependencies:
+      '@swup/plugin': 4.0.0
+      swup: 4.10.0
+
   '@types/chai@5.2.3':
     dependencies:
       '@types/deep-eql': 4.0.2
@@ -1487,6 +1566,10 @@ snapshots:
 
   delayed-stream@1.0.0: {}
 
+  delegate-it@6.4.0:
+    dependencies:
+      typed-query-selector: 2.12.3
+
   detect-libc@2.1.2: {}
 
   dunder-proto@1.0.1:
@@ -1527,6 +1610,8 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
+
+  focus-options-polyfill@1.6.0: {}
 
   follow-redirects@1.16.0: {}
 
@@ -1775,6 +1860,8 @@ snapshots:
       lru-cache: 10.4.3
       minipass: 7.1.2
 
+  path-to-regexp@6.3.0: {}
+
   path@0.12.7:
     dependencies:
       process: 0.11.10
@@ -1913,6 +2000,11 @@ snapshots:
     dependencies:
       ansi-regex: 6.0.1
 
+  swup@4.10.0:
+    dependencies:
+      delegate-it: 6.4.0
+      path-to-regexp: 6.3.0
+
   tar-stream@3.1.7:
     dependencies:
       b4a: 1.6.7
@@ -1935,6 +2027,8 @@ snapshots:
   tinypool@2.1.0: {}
 
   totalist@3.0.1: {}
+
+  typed-query-selector@2.12.3: {}
 
   typescript@5.9.3: {}
 

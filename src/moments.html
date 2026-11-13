@@ -50,7 +50,7 @@
       <span th:text="|第 ${moments.page} / ${moments.totalPages} 页|">第 1 页</span>
     </div>
 
-    <div data-pager-region>
+    <div id="pager-region">
       <div class="moment-list" th:if="${not #lists.isEmpty(moments.items)}">
         <article
           class="mcard"

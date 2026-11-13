@@ -67,7 +67,7 @@
       </th:block>
     </div>
 
-    <div class="gallery-grid" th:if="${not #lists.isEmpty(photos.items)}">
+    <div class="gallery-grid" id="pager-region" th:if="${not #lists.isEmpty(photos.items)}">
       <a
         class="gallery-card reveal"
         th:each="photo : ${photos.items}"

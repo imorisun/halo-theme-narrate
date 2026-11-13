@@ -1,3 +1,9 @@
+import SwupA11yPlugin from "@swup/a11y-plugin";
+import SwupHeadPlugin from "@swup/head-plugin";
+import SwupPreloadPlugin from "@swup/preload-plugin";
+import SwupProgressPlugin from "@swup/progress-plugin";
+import Swup from "swup";
+
 import "../css/style.css";
 
 type HaloSearchWidget = { open(): void };
@@ -14,6 +20,39 @@ const qsa = <T extends Element>(selector: string, root: ParentNode = document): 
   Array.from(root.querySelectorAll<T>(selector));
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- 页面级生命周期（Swup 切换前后） ---------------- */
+let pageCleanups: Array<() => void> = [];
+
+/** 注册当前页面需要释放的监听 / 定时器，切换页面时统一清理，避免重复累积 */
+function registerPageCleanup(cleanup: () => void) {
+  pageCleanups.push(cleanup);
+}
+
+function runPageCleanups() {
+  pageCleanups.forEach((cleanup) => {
+    try {
+      cleanup();
+    } catch {
+      /* 单个清理失败不影响后续页面初始化 */
+    }
+  });
+  pageCleanups = [];
+}
+
+/** 重新执行内容区域内的脚本（评论组件、代码高亮等第三方脚本） */
+function replayContentScripts(root: ParentNode) {
+  qsa<HTMLScriptElement>("script", root).forEach((script) => {
+    if (script.hasAttribute("data-swup-ignore-script")) return;
+    // 通过重新创建 script 节点触发执行，保留原有属性与内联代码
+    const clone = document.createElement("script");
+    Array.from(script.attributes).forEach((attribute) => {
+      clone.setAttribute(attribute.name, attribute.value);
+    });
+    clone.textContent = script.textContent;
+    script.replaceWith(clone);
+  });
+}
 
 /* ---------------- 主题切换 ---------------- */
 function initThemeToggle() {
@@ -112,6 +151,7 @@ function initReveal() {
     { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
   );
   elements.forEach((element) => observer.observe(element));
+  registerPageCleanup(() => observer.disconnect());
 }
 
 /* ---------------- 数字增长动画 ---------------- */
@@ -155,6 +195,7 @@ function initCounters() {
     { threshold: 0.6 },
   );
   counters.forEach((element) => observer.observe(element));
+  registerPageCleanup(() => observer.disconnect());
 }
 
 /* ---------------- 首页「此刻」与问候 ---------------- */
@@ -199,7 +240,8 @@ function initClock() {
     }
   };
   tick();
-  window.setInterval(tick, 1000);
+  const timer = window.setInterval(tick, 1000);
+  registerPageCleanup(() => window.clearInterval(timer));
 }
 
 /* ---------------- 首页旋转词 ---------------- */
@@ -220,7 +262,7 @@ function initRotatingWord() {
   let index = 0;
   let animation: Animation | null = null;
 
-  window.setInterval(() => {
+  const timer = window.setInterval(() => {
     index = (index + 1) % words.length;
     element.textContent = words[index];
     if (prefersReducedMotion) return;
@@ -235,6 +277,11 @@ function initRotatingWord() {
       { duration: 600, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" },
     );
   }, 3200);
+
+  registerPageCleanup(() => {
+    window.clearInterval(timer);
+    animation?.cancel();
+  });
 }
 
 /* ---------------- 瞬间横向翻页 ---------------- */
@@ -435,45 +482,61 @@ function initContentImages() {
       }
     });
   }
+}
 
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    if (target.tagName !== "IMG") return;
-    if (target.closest(".narrate-lightbox")) return;
-    if (
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey ||
-      (event as MouseEvent).button !== 0
-    )
-      return;
+function closeLightbox() {
+  if (!lightbox) return;
+  lightbox.classList.remove("open");
+  document.body.classList.remove("lightbox-open");
+}
 
-    // 正文配图、组图（Halo 编辑器渲染的 figure/img）以及瞬间图片都支持放大，
-    // 灯箱内可切换同一区域内（正文 / 瞬间图集）的全部图片
-    const scope =
-      target.closest<HTMLElement>(".moment-images") ??
-      target.closest<HTMLElement>(".post-content") ??
-      target.closest<HTMLElement>(".moment-image");
-    if (!scope) return;
+/** 灯箱使用事件委托，只需在全局初始化一次 */
+function initImageLightbox() {
+  // 使用捕获阶段，确保先于 Swup 的链接拦截执行并阻止其对图片链接的跳转
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target as HTMLElement;
+      if (target.tagName !== "IMG") return;
+      if (target.closest(".narrate-lightbox")) return;
+      if (
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        (event as MouseEvent).button !== 0
+      )
+        return;
 
-    const items = qsa<HTMLImageElement>("img", scope)
-      .filter((image) => !image.closest(".narrate-lightbox"))
-      .filter((image) => !image.classList.contains("emoji"))
-      .map((image) => ({ src: image.currentSrc || image.src, alt: image.alt }))
-      .filter((item) => item.src);
+      // 正文配图、组图（Halo 编辑器渲染的 figure/img）以及瞬间图片都支持放大，
+      // 灯箱内可切换同一区域内（正文 / 瞬间图集）的全部图片
+      const scope =
+        target.closest<HTMLElement>(".moment-images") ??
+        target.closest<HTMLElement>(".post-content") ??
+        target.closest<HTMLElement>(".moment-image");
+      if (!scope) return;
 
-    const current = (target as HTMLImageElement).currentSrc || (target as HTMLImageElement).src;
-    if (!current) return;
+      const items = qsa<HTMLImageElement>("img", scope)
+        .filter((image) => !image.closest(".narrate-lightbox"))
+        .filter((image) => !image.classList.contains("emoji"))
+        .map((image) => ({ src: image.currentSrc || image.src, alt: image.alt }))
+        .filter((item) => item.src);
 
-    if (!items.length) items.push({ src: current, alt: (target as HTMLImageElement).alt });
-    const index = Math.max(
-      0,
-      items.findIndex((item) => item.src === current),
-    );
-    event.preventDefault();
-    openLightbox(items, index);
-  });
+      const current = (target as HTMLImageElement).currentSrc || (target as HTMLImageElement).src;
+      if (!current) return;
+
+      if (!items.length) items.push({ src: current, alt: (target as HTMLImageElement).alt });
+      const index = Math.max(
+        0,
+        items.findIndex((item) => item.src === current),
+      );
+      event.preventDefault();
+      // 阻止 Swup 对包裹图片的链接执行跳转
+      event.stopImmediatePropagation();
+      openLightbox(items, index);
+    },
+    true,
+  );
 }
 
 /* ---------------- 文章目录 ---------------- */
@@ -503,6 +566,8 @@ function initToc() {
     const link = document.createElement("a");
     link.href = `#${heading.id}`;
     link.textContent = heading.textContent ?? "";
+    // 目录使用自定义滚动偏移，禁止 Swup 再次接管锚点跳转
+    link.setAttribute("data-no-swup", "");
     link.addEventListener("click", (event) => {
       event.preventDefault();
       const top = heading.getBoundingClientRect().top + window.scrollY - 80;
@@ -527,6 +592,7 @@ function initToc() {
     { rootMargin: "-80px 0px -70% 0px", threshold: 0 },
   );
   headings.forEach((heading) => observer.observe(heading));
+  registerPageCleanup(() => observer.disconnect());
 }
 
 /* ---------------- 友链卡片 ---------------- */
@@ -605,10 +671,21 @@ function initArchiveCounts() {
 
 /* ---------------- 代码高亮 ---------------- */
 function initHighlight() {
-  if (!window.hljs) return;
-  qsa<HTMLElement>(".post-content pre code").forEach((block) => {
-    window.hljs?.highlightElement(block);
-  });
+  const blocks = qsa<HTMLElement>(".post-content pre code");
+  if (!blocks.length) return;
+
+  const run = () => {
+    blocks.forEach((block) => window.hljs?.highlightElement(block));
+  };
+
+  if (window.hljs) {
+    run();
+    return;
+  }
+
+  // 代码高亮脚本随页面内容一起被 Swup 重新执行，需等待其加载完成后再渲染
+  const script = qs<HTMLScriptElement>('script[src*="highlight.min.js"]');
+  script?.addEventListener("load", run, { once: true });
 }
 
 /* ---------------- 友链申请验证码刷新 ---------------- */
@@ -836,143 +913,34 @@ function initMomentComments(root: ParentNode = document) {
   });
 }
 
-/* ---------------- 文章列表无刷新分页 ---------------- */
-function initListPagination() {
-  const REGION = "[data-pager-region]";
-  const currentRegion = () => qs<HTMLElement>(REGION);
-  if (!currentRegion()) return;
+/* ---------------- 导航选中态 ---------------- */
+function normalizePath(path: string) {
+  return path.length > 1 ? path.replace(/\/+$/, "") : path;
+}
 
-  let controller: AbortController | null = null;
-  let loading = false;
-  let pending: { url: string; push: boolean } | null = null;
-
-  const showLoading = (region: HTMLElement) => {
-    region.classList.add("is-loading");
-    region.setAttribute("aria-busy", "true");
-    let overlay = qs<HTMLElement>(".pager-loading", region);
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.className = "pager-loading";
-      overlay.setAttribute("role", "status");
-      overlay.setAttribute("aria-live", "polite");
-      overlay.innerHTML =
-        '<span class="pager-spinner" aria-hidden="true"></span><span>正在加载…</span>';
-      region.appendChild(overlay);
-    }
-    overlay.hidden = false;
-  };
-
-  const hideLoading = (region: HTMLElement) => {
-    region.classList.remove("is-loading");
-    region.removeAttribute("aria-busy");
-    const overlay = qs<HTMLElement>(".pager-loading", region);
-    if (overlay) overlay.hidden = true;
-  };
-
-  const showError = (region: HTMLElement, retry: () => void) => {
-    qs<HTMLElement>(".pager-error", region)?.remove();
-    const box = document.createElement("div");
-    box.className = "pager-error";
-    box.setAttribute("role", "alert");
-    const message = document.createElement("p");
-    message.textContent = "内容加载失败，请检查网络后重试。";
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "pager-retry";
-    button.textContent = "重试";
-    button.addEventListener("click", retry);
-    box.append(message, button);
-    region.appendChild(box);
-  };
-
-  const scrollToRegion = (region: HTMLElement) => {
-    const top = region.getBoundingClientRect().top + window.scrollY - 72;
-    window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? "auto" : "smooth" });
-  };
-
-  const replaceRegion = (html: string) => {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const next = doc.querySelector<HTMLElement>(REGION);
-    const current = currentRegion();
-    if (!next || !current) throw new Error("pager region missing");
-    current.replaceWith(document.importNode(next, true));
-    if (doc.title) document.title = doc.title;
-
-    const region = currentRegion();
-    if (region) {
-      initArchiveCounts();
-      initRelativeTimes();
-      initMomentSummary(region);
-      initMomentTagLinks(region);
-      initMomentUpvote(region);
-      initMomentComments(region);
-    }
-  };
-
-  const load = async (url: string, push: boolean, force = false) => {
-    if (loading && !force) return;
-    const region = currentRegion();
-    if (!region) return;
-
-    controller?.abort();
-    controller = new AbortController();
-    loading = true;
-    pending = { url, push };
-    qs<HTMLElement>(".pager-error", region)?.remove();
-    showLoading(region);
-
+function initNavActive() {
+  const pathname = normalizePath(window.location.pathname);
+  qsa<HTMLAnchorElement>("#nav a[href]").forEach((link) => {
+    if (link.target === "_blank" || link.target === "_parent") return;
+    let target = "";
     try {
-      const response = await fetch(url, {
-        signal: controller.signal,
-        credentials: "same-origin",
-        headers: { Accept: "text/html" },
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      replaceRegion(await response.text());
-      if (push) history.pushState({ narratePager: true }, "", url);
-      loading = false;
-      pending = null;
-      const next = currentRegion();
-      if (next) scrollToRegion(next);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      loading = false;
-      const target = currentRegion();
-      const retry = pending;
-      if (!target) return;
-      hideLoading(target);
-      if (retry) showError(target, () => void load(retry.url, retry.push));
+      target = normalizePath(new URL(link.href, window.location.href).pathname);
+    } catch {
+      return;
     }
-  };
-
-  document.addEventListener("click", (event) => {
-    if (event.defaultPrevented || event.button !== 0) return;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-    const anchor = (event.target as HTMLElement).closest(
-      ".page-navigator a[href]",
-    ) as HTMLAnchorElement | null;
-    if (!anchor || !anchor.closest(REGION)) return;
-
-    event.preventDefault();
-    if (loading || anchor.href === window.location.href) return;
-    void load(anchor.href, true);
-  });
-
-  window.addEventListener("popstate", () => {
-    if (!currentRegion()) return;
-    void load(window.location.href, false, true);
+    const active =
+      target === "/" ? pathname === "/" : pathname === target || pathname.startsWith(`${target}/`);
+    link.classList.toggle("active", active);
   });
 }
 
-/* ---------------- 启动 ---------------- */
-function boot() {
-  initThemeToggle();
-  initSearch();
-  initNavigation();
-  initScrollUi();
-  initReveal();
-  initCounters();
+/* ---------------- 页面级初始化 ---------------- */
+function initPage(replayScripts = false) {
+  if (replayScripts) {
+    const container = qs<HTMLElement>("#swup") ?? document.body;
+    replayContentScripts(container);
+  }
+
   initClock();
   initRotatingWord();
   initMoments();
@@ -989,8 +957,117 @@ function boot() {
   initMomentSummary();
   initMomentTagLinks();
   initMomentComments();
-  initListPagination();
-  window.addEventListener("load", initHighlight, { once: true });
+}
+
+/** 入场动画结束后再触发滚动浮现，避免与页面过渡叠加 */
+function initPageMotion() {
+  initReveal();
+  initCounters();
+  initNavActive();
+  // 刷新滚动进度条与回到顶部按钮状态
+  window.dispatchEvent(new Event("scroll"));
+}
+
+/* ---------------- Swup 页面过渡 ---------------- */
+/** 绕过全局平滑滚动，立即定位（兼容不支持 instant 的浏览器） */
+function scrollInstant(target: "top" | Element) {
+  const root = document.documentElement;
+  const previous = root.style.scrollBehavior;
+  root.style.scrollBehavior = "auto";
+  if (target === "top") {
+    window.scrollTo(0, 0);
+  } else {
+    target.scrollIntoView({ block: "start", behavior: "auto" });
+  }
+  root.style.scrollBehavior = previous;
+}
+
+function initSwup() {
+  const swup = new Swup({
+    containers: ["#swup"],
+    animationSelector: ".transition-main",
+    cache: true,
+    native: false,
+    plugins: [
+      // 同步新页面 head 中的标题、样式与脚本资源，等待样式加载完成再切换
+      new SwupHeadPlugin({
+        persistAssets: true,
+        awaitAssets: true,
+        timeout: 3000,
+      }),
+      // 预加载悬停链接，减少等待时间
+      new SwupPreloadPlugin({
+        preloadHoveredLinks: true,
+        preloadVisibleLinks: false,
+        preloadInitialPage: false,
+        throttle: 3,
+      }),
+      new SwupA11yPlugin({
+        respectReducedMotion: true,
+        headingSelector: ["main h1", "h1"],
+        announcements: {
+          "zh-CN": { visit: "已打开：{title}", url: "已打开新页面：{url}" },
+          "*": { visit: "已打开：{title}", url: "已打开新页面：{url}" },
+        },
+      }),
+      // 顶部细进度条，弱化等待感
+      new SwupProgressPlugin({
+        className: "narrate-progress",
+        delay: 200,
+        transition: 260,
+        minValue: 0.08,
+        initialValue: 0.2,
+      }),
+    ],
+  });
+
+  // 页面切换使用即时滚动，同页锚点保留平滑滚动
+  swup.hooks.replace("scroll:top", () => {
+    scrollInstant("top");
+    return true;
+  });
+
+  swup.hooks.replace("scroll:anchor", (visit, { hash }) => {
+    const target = swup.getAnchorElement(hash);
+    if (!(target instanceof Element)) return false;
+    const samePage = visit.from.url === visit.to.url;
+    if (samePage && !prefersReducedMotion) {
+      target.scrollIntoView({ block: "start", behavior: "smooth" });
+    } else {
+      scrollInstant(target);
+    }
+    return true;
+  });
+
+  swup.hooks.on("visit:start", (visit) => {
+    closeLightbox();
+    // 分页跳转后回到列表区域，而不是页面顶部
+    if (visit.trigger.el?.closest(".page-navigator")) {
+      visit.scroll.target = "pager-region";
+    }
+  });
+
+  // 内容替换完成后先清理旧页面状态，再初始化新页面
+  swup.hooks.on("content:replace", () => {
+    runPageCleanups();
+    initPage(true);
+  });
+
+  swup.hooks.on("visit:end", () => {
+    initPageMotion();
+  });
+}
+
+/* ---------------- 启动 ---------------- */
+function boot() {
+  initThemeToggle();
+  initSearch();
+  initNavigation();
+  initScrollUi();
+  initImageLightbox();
+  initPage();
+  initPageMotion();
+  initSwup();
 }
 
 if (document.readyState === "loading") {
