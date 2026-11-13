@@ -439,7 +439,7 @@ function initContentImages() {
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
     if (target.tagName !== "IMG") return;
-    if (!target.closest(".post__image, .moment-image")) return;
+    if (target.closest(".narrate-lightbox")) return;
     if (
       event.metaKey ||
       event.ctrlKey ||
@@ -449,11 +449,22 @@ function initContentImages() {
     )
       return;
 
-    const scope = target.closest(".moment-images, .post-content, .post__image") ?? document;
-    const items = qsa<HTMLImageElement>(".post__image img, .moment-image img", scope)
-      .filter((image) => image.complete && image.naturalWidth > 0 && image.src)
-      .map((image) => ({ src: image.currentSrc || image.src, alt: image.alt }));
+    // 正文配图、组图（Halo 编辑器渲染的 figure/img）以及瞬间图片都支持放大，
+    // 灯箱内可切换同一区域内（正文 / 瞬间图集）的全部图片
+    const scope =
+      target.closest<HTMLElement>(".moment-images") ??
+      target.closest<HTMLElement>(".post-content") ??
+      target.closest<HTMLElement>(".moment-image");
+    if (!scope) return;
+
+    const items = qsa<HTMLImageElement>("img", scope)
+      .filter((image) => !image.closest(".narrate-lightbox"))
+      .filter((image) => !image.classList.contains("emoji"))
+      .map((image) => ({ src: image.currentSrc || image.src, alt: image.alt }))
+      .filter((item) => item.src);
+
     const current = (target as HTMLImageElement).currentSrc || (target as HTMLImageElement).src;
+    if (!current) return;
 
     if (!items.length) items.push({ src: current, alt: (target as HTMLImageElement).alt });
     const index = Math.max(

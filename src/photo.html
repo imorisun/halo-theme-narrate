@@ -1,0 +1,213 @@
+<!--
+  图库详情页（plugin-photos 的 /photos/{name} 路由，模板名 photo.html）
+
+  可用变量：
+    photo      — PhotoVo，当前照片（metadata / spec / exif / permalink）
+    prev/next  — 排序中的上一张 / 下一张，可能为 null
+    neighbors  — List<PhotoVo>，同一过滤上下文内的相邻照片（含当前照片）
+    position   — int，当前照片在过滤上下文中的序号（从 1 开始）
+    total      — int，过滤上下文中的照片总数
+    backUrl    — String，回到来源列表的 URL
+    photoUrl   — PhotoUrlBuilder，详情 URL 构造器
+    title      — String，页面标题
+  模板覆盖后评论仍走 Halo 评论组件（Photo 扩展）。
+-->
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${#strings.isEmpty(title) ? photo.spec.displayName : title} · ${site.title}|">
+      照片 · Narrate
+    </title>
+  </template>
+
+  <div class="page-wrap photo-page container">
+    <nav class="photo-back" aria-label="返回图库">
+      <a th:href="@{${backUrl}}">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M19 12H5M11 18l-6-6 6-6" />
+        </svg>
+        <span>返回图库</span>
+      </a>
+      <span class="photo-back__pos" th:text="|第 ${position} / ${total} 张|">第 1 / 1 张</span>
+    </nav>
+
+    <figure class="photo-figure">
+      <div class="photo-figure__stage">
+        <img
+          class="photo-figure__image"
+          th:src="${photo.spec.url}"
+          th:alt="${photo.spec.displayName}"
+        />
+      </div>
+      <figcaption class="photo-figure__caption">
+        <div class="photo-figure__kicker">
+          <span class="rule" aria-hidden="true"></span>
+          <span>PHOTO · 图库</span>
+        </div>
+        <h1 class="photo-figure__title" th:text="${photo.spec.displayName}">照片标题</h1>
+        <p
+          class="photo-figure__desc"
+          th:if="${not #strings.isEmpty(photo.spec.description)}"
+          th:text="${photo.spec.description}"
+        ></p>
+        <ul
+          class="photo-figure__tags"
+          th:if="${photo.spec.tags != null and not #lists.isEmpty(photo.spec.tags)}"
+          aria-label="照片标签"
+        >
+          <li class="photo-figure__tag" th:each="tag : ${photo.spec.tags}" th:text="|#${tag}|">
+            #标签
+          </li>
+        </ul>
+        <div class="photo-figure__meta">
+          <time
+            th:if="${photo.metadata.creationTimestamp != null}"
+            th:datetime="${photo.metadata.creationTimestamp}"
+            th:text="${#temporals.format(photo.metadata.creationTimestamp, 'yyyy.MM.dd')}"
+            >2026.01.01</time
+          >
+          <span
+            class="sep-dot"
+            th:if="${photo.metadata.creationTimestamp != null}"
+            aria-hidden="true"
+          ></span>
+          <span th:text="|第 ${position} / ${total} 张|">第 1 / 1 张</span>
+        </div>
+      </figcaption>
+    </figure>
+
+    <section class="photo-exif" th:if="${photo.exif != null}">
+      <header class="photo-exif__head">
+        <h2 class="photo-exif__title" th:text="'拍摄信息'">拍摄信息</h2>
+        <span class="photo-exif__en" th:text="'EXIF'">EXIF</span>
+      </header>
+      <dl class="photo-exif__grid">
+        <div
+          class="photo-exif__item"
+          th:if="${not #strings.isEmpty(photo.exif.make) or not #strings.isEmpty(photo.exif.model)}"
+        >
+          <dt>相机</dt>
+          <dd
+            th:text="${#strings.trim((photo.exif.make ?: '') + ' ' + (photo.exif.model ?: ''))}"
+          ></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${not #strings.isEmpty(photo.exif.lensModel)}">
+          <dt>镜头</dt>
+          <dd th:text="${photo.exif.lensModel}"></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${photo.exif.dateTimeOriginal != null}">
+          <dt>拍摄时间</dt>
+          <dd th:text="${#temporals.format(photo.exif.dateTimeOriginal, 'yyyy.MM.dd HH:mm')}"></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${photo.exif.fNumber != null}">
+          <dt>光圈</dt>
+          <dd th:text="|f/${photo.exif.fNumber}|"></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${not #strings.isEmpty(photo.exif.exposureTime)}">
+          <dt>曝光时间</dt>
+          <dd th:text="|${photo.exif.exposureTime} 秒|"></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${photo.exif.iso != null}">
+          <dt>感光度</dt>
+          <dd th:text="|ISO ${photo.exif.iso}|"></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${photo.exif.focalLength != null}">
+          <dt>焦距</dt>
+          <dd th:text="|${photo.exif.focalLength} mm|"></dd>
+        </div>
+        <div
+          class="photo-exif__item"
+          th:if="${photo.exif.imageWidth != null and photo.exif.imageHeight != null}"
+        >
+          <dt>尺寸</dt>
+          <dd th:text="|${photo.exif.imageWidth} × ${photo.exif.imageHeight}|"></dd>
+        </div>
+        <div class="photo-exif__item" th:if="${not #strings.isEmpty(photo.exif.software)}">
+          <dt>处理软件</dt>
+          <dd th:text="${photo.exif.software}"></dd>
+        </div>
+      </dl>
+    </section>
+
+    <nav class="post-nav" th:if="${prev != null or next != null}" aria-label="照片导航">
+      <a class="post-nav__item" th:if="${prev != null}" th:href="@{${photoUrl.detail(prev)}}">
+        <span class="label">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m14 6-6 6 6 6" />
+          </svg>
+          上一张
+        </span>
+        <span class="nt" th:text="${prev.spec.displayName}"></span>
+      </a>
+      <a class="post-nav__item next" th:if="${next != null}" th:href="@{${photoUrl.detail(next)}}">
+        <span class="label">
+          下一张
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m10 6 6 6-6 6" />
+          </svg>
+        </span>
+        <span class="nt" th:text="${next.spec.displayName}"></span>
+      </a>
+    </nav>
+
+    <section class="photo-neighbors" th:if="${not #lists.isEmpty(neighbors)}">
+      <header class="photo-neighbors__head">
+        <h2 class="photo-neighbors__title" th:text="'附近照片'">附近照片</h2>
+        <span class="photo-neighbors__en" th:text="'NEARBY'">NEARBY</span>
+      </header>
+      <div class="photo-neighbors__track">
+        <a
+          class="photo-neighbors__item"
+          th:each="neighbor : ${neighbors}"
+          th:classappend="${neighbor.metadata.name == photo.metadata.name} ? 'is-current' : ''"
+          th:href="@{${photoUrl.detail(neighbor)}}"
+          th:attr="aria-current=${neighbor.metadata.name == photo.metadata.name ? 'page' : null}"
+        >
+          <img
+            th:src="${#strings.isEmpty(neighbor.spec.cover) ? neighbor.spec.url : neighbor.spec.cover}"
+            th:alt="${neighbor.spec.displayName}"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="photo-neighbors__label" th:text="${neighbor.spec.displayName}">照片</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="comments" id="comments" th:if="${haloCommentEnabled}">
+      <div class="comments__head">
+        <div class="comments__head-text">
+          <span class="comments__no">Ⅲ</span>
+          <h2 class="comments__title" th:text="'评论'">评论</h2>
+          <span class="comments__en" th:text="'Comments'">Comments</span>
+        </div>
+        <span class="line"></span>
+      </div>
+      <halo:comment group="core.halo.run" kind="Photo" th:attr="name=${photo.metadata.name}" />
+    </section>
+    <div class="comments-disabled" th:if="${!haloCommentEnabled}">评论已关闭</div>
+  </div>
+</include>

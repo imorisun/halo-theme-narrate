@@ -1,0 +1,208 @@
+<!--
+  图库列表页（plugin-photos 的 /photos 路由，模板名 photos.html）
+
+  可用变量：
+    groups   — List<PhotoGroupVo>，全部分组（含 status.photoCount）
+    photos   — UrlContextListResult<PhotoVo>，当前页照片分页结果
+    group    — String|null，当前分组筛选（对应 URL 的 group 参数）
+    photoUrl — PhotoUrlBuilder，列表 / 详情 URL 构造器
+    title    — String，页面标题
+  插件未安装时该模板不会被渲染。
+-->
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${#strings.isEmpty(title) ? '图库' : title} · ${site.title}|">
+      图库 · Narrate
+    </title>
+  </template>
+
+  <section class="page-hero">
+    <span
+      class="page-hero__glyph"
+      th:text="${#strings.isEmpty(title) ? '图' : #strings.substring(title, 0, 1)}"
+      >图</span
+    >
+    <div class="container">
+      <div class="page-hero__kicker">GALLERY · 图库</div>
+      <h1 class="page-hero__title" th:text="${#strings.isEmpty(title) ? '图库' : title}">图库</h1>
+      <p class="page-hero__sub">以光为笔，以影为墨。这里收存随手拍下的片段与远行的瞬间。</p>
+    </div>
+  </section>
+
+  <div class="page-wrap container">
+    <!-- 分组筛选：链接与计数均由插件提供，分页时保留 group 上下文 -->
+    <nav
+      class="gallery-filter"
+      th:if="${groups != null and not #lists.isEmpty(groups)}"
+      aria-label="照片分组"
+    >
+      <a
+        class="gallery-filter__item"
+        th:classappend="${#strings.isEmpty(group)} ? 'is-active' : ''"
+        th:href="@{${photoUrl.list()}}"
+        th:attr="aria-current=${#strings.isEmpty(group) ? 'page' : null}"
+        >全部</a
+      >
+      <a
+        class="gallery-filter__item"
+        th:each="photoGroup : ${groups}"
+        th:classappend="${group == photoGroup.metadata.name} ? 'is-active' : ''"
+        th:href="@{${photoUrl.list(photoGroup.metadata.name)}}"
+        th:attr="aria-current=${group == photoGroup.metadata.name ? 'page' : null}"
+      >
+        <span th:text="${photoGroup.spec.displayName}">分组</span>
+        <em
+          th:if="${photoGroup.status != null and photoGroup.status.photoCount != null}"
+          th:text="${photoGroup.status.photoCount}"
+          >0</em
+        >
+      </a>
+    </nav>
+
+    <div class="link-stats">
+      <span><b th:text="${photos.total}">0</b> 张照片</span>
+      <th:block th:if="${photos.totalPages > 1}">
+        <i></i>
+        <span th:text="|第 ${photos.page} / ${photos.totalPages} 页|">第 1 页</span>
+      </th:block>
+    </div>
+
+    <div class="gallery-grid" th:if="${not #lists.isEmpty(photos.items)}">
+      <a
+        class="gallery-card reveal"
+        th:each="photo : ${photos.items}"
+        th:href="@{${photoUrl.detail(photo)}}"
+      >
+        <span class="gallery-card__media">
+          <img
+            class="gallery-card__image"
+            th:src="${#strings.isEmpty(photo.spec.cover) ? photo.spec.url : photo.spec.cover}"
+            th:alt="${photo.spec.displayName}"
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+        <span class="gallery-card__body">
+          <span class="gallery-card__index" aria-hidden="true"></span>
+          <span class="gallery-card__text">
+            <span class="gallery-card__title" th:text="${photo.spec.displayName}">照片</span>
+            <span
+              class="gallery-card__desc"
+              th:if="${not #strings.isEmpty(photo.spec.description)}"
+              th:text="${photo.spec.description}"
+            ></span>
+            <span
+              class="gallery-card__tags"
+              th:if="${photo.spec.tags != null and not #lists.isEmpty(photo.spec.tags)}"
+            >
+              <span class="gallery-card__tag" th:each="tag : ${photo.spec.tags}" th:text="|#${tag}|"
+                >#标签</span
+              >
+            </span>
+          </span>
+        </span>
+      </a>
+    </div>
+
+    <div class="ff-empty" th:if="${#lists.isEmpty(photos.items)}">
+      <b>暂无照片</b>
+      <span th:text="${#strings.isEmpty(group) ? '还没有上传任何照片。' : '这个分组下还没有照片。'}"
+        >还没有上传任何照片。</span
+      >
+    </div>
+
+    <!-- 分页：插件使用查询参数分页，页码链接需保留 group 与 size -->
+    <nav
+      class="page-navigator"
+      th:if="${photos.totalPages > 1}"
+      th:with="
+        total=${photos.totalPages},
+        current=${photos.page},
+        windowStart=${photos.totalPages <= 5 ? 1 : (photos.page <= 3 ? 1 : (photos.page >= photos.totalPages - 2 ? photos.totalPages - 4 : photos.page - 1))},
+        windowEnd=${photos.totalPages <= 5 ? photos.totalPages : (photos.page <= 3 ? 5 : (photos.page >= photos.totalPages - 2 ? photos.totalPages : photos.page + 1))}"
+      aria-label="分页导航"
+    >
+      <ul class="pagination">
+        <li class="pager-step pager-edge" th:classappend="${current <= 1} ? 'disabled' : ''">
+          <a
+            th:if="${current > 1}"
+            th:href="@{${photoUrl.list(group, 1, photos.size)}}"
+            rel="first"
+            title="首页"
+            aria-label="首页"
+            >«</a
+          >
+          <span th:unless="${current > 1}" aria-hidden="true">«</span>
+        </li>
+        <li class="pager-step" th:classappend="${!photos.hasPrevious()} ? 'disabled' : ''">
+          <a
+            th:if="${photos.hasPrevious()}"
+            th:href="@{${photos.prevUrl}}"
+            rel="prev"
+            title="上一页"
+            aria-label="上一页"
+            >←</a
+          >
+          <span th:unless="${photos.hasPrevious()}" aria-hidden="true">←</span>
+        </li>
+
+        <li th:if="${windowStart > 1}">
+          <a
+            th:href="@{${photoUrl.list(group, 1, photos.size)}}"
+            th:title="'第 1 页'"
+            th:aria-label="'第 1 页'"
+            >1</a
+          >
+        </li>
+        <li class="ellipsis" th:if="${windowStart > 2}" aria-hidden="true">…</li>
+
+        <li
+          th:each="n : ${#numbers.sequence(windowStart, windowEnd)}"
+          th:classappend="${n == current} ? 'current' : ''"
+        >
+          <span th:if="${n == current}" th:text="${n}" aria-current="page"></span>
+          <a
+            th:unless="${n == current}"
+            th:href="@{${photoUrl.list(group, n, photos.size)}}"
+            th:title="${'第 ' + n + ' 页'}"
+            th:aria-label="${'第 ' + n + ' 页'}"
+            th:text="${n}"
+          ></a>
+        </li>
+
+        <li class="ellipsis" th:if="${windowEnd < total - 1}" aria-hidden="true">…</li>
+        <li th:if="${windowEnd < total}">
+          <a
+            th:href="@{${photoUrl.list(group, total, photos.size)}}"
+            th:title="${'第 ' + total + ' 页'}"
+            th:aria-label="${'第 ' + total + ' 页'}"
+            th:text="${total}"
+          ></a>
+        </li>
+
+        <li class="pager-step" th:classappend="${!photos.hasNext()} ? 'disabled' : ''">
+          <a
+            th:if="${photos.hasNext()}"
+            th:href="@{${photos.nextUrl}}"
+            rel="next"
+            title="下一页"
+            aria-label="下一页"
+            >→</a
+          >
+          <span th:unless="${photos.hasNext()}" aria-hidden="true">→</span>
+        </li>
+        <li class="pager-step pager-edge" th:classappend="${current >= total} ? 'disabled' : ''">
+          <a
+            th:if="${current < total}"
+            th:href="@{${photoUrl.list(group, total, photos.size)}}"
+            rel="last"
+            title="末页"
+            aria-label="末页"
+            >»</a
+          >
+          <span th:unless="${current < total}" aria-hidden="true">»</span>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</include>
