@@ -55,7 +55,10 @@
             th:if="${not #strings.isEmpty(cover)}"
             th:src="${cover}"
             th:alt="${post.spec.title}"
+            width="138"
+            height="92"
             loading="lazy"
+            decoding="async"
           />
           <span th:if="${#strings.isEmpty(cover)}" class="ph" th:classappend="${phClass}">
             <span class="ph__tag" th:text="${tag.spec.displayName}"></span>

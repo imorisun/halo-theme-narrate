@@ -34,8 +34,8 @@ spec:
           value: "Narrate · 以文为名"
         - $formkit: switch
           name: enable_web_font
-          label: 启用在线中文字体
-          help: 从第三方字体服务（fontsapi.zeoseven.com）加载 LXGW 975 圆体；关闭后使用系统字体，不影响正常阅读。
+          label: 启用内置中文字体
+          help: 随主题本地加载 LXGW 975 圆体（OFL-1.1），不再请求第三方服务；关闭后使用系统字体，不影响正常阅读。
           value: true
         - $formkit: text
           name: hero_statement

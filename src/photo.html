@@ -44,6 +44,8 @@
           class="photo-figure__image"
           th:src="${photo.spec.url}"
           th:alt="${photo.spec.displayName}"
+          fetchpriority="high"
+          decoding="async"
         />
       </div>
       <figcaption class="photo-figure__caption">
@@ -189,6 +191,8 @@
           <img
             th:src="${#strings.isEmpty(neighbor.spec.cover) ? neighbor.spec.url : neighbor.spec.cover}"
             th:alt="${neighbor.spec.displayName}"
+            width="120"
+            height="120"
             loading="lazy"
             decoding="async"
           />

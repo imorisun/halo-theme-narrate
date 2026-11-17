@@ -7,7 +7,7 @@
 ![Narrate · 叙 主题预览](./screenshot.png)
 
 - **Halo 版本**：`>= 2.27.0`
-- **主题版本**：`1.0.0`
+- **主题版本**：`2.1.1`
 - **演示站点**：<https://www.puresky.top/>
 - **开源仓库**：<https://github.com/imorisun/halo-theme-narrate>
 - **问题反馈**：<https://github.com/imorisun/halo-theme-narrate/issues>
@@ -102,7 +102,7 @@
 | 首屏背景大字     | 首屏背景的巨幅描边字符，页脚品牌区沿用同一字符             | 叙                                                |
 | 首屏眉题         | 首屏主张句上方的短标签                                     | 叙 · 个人博客                                     |
 | 页脚站点标语     | 页脚站点名称下方的一行文字                                 | Narrate · 以文为名                                |
-| 启用在线中文字体 | 从第三方服务加载 LXGW 975 圆体；关闭后使用系统字体         | 开启                                              |
+| 启用内置中文字体 | 加载随主题分发的 LXGW 975 圆体；关闭后使用系统字体         | 开启                                              |
 | 首屏主张句       | 使用 `{rot}` 标记旋转词位置                                | 在喧嚣里，留一处`{rot}`。                         |
 | 首屏旋转词       | 每行一条，依次轮播                                         | 笔墨栖居地 / 思想避风港 / 文字小天地 / 心灵自留地 |
 
@@ -136,7 +136,7 @@
 
 ## 使用说明与注意事项
 
-- **在线字体**：主题默认从第三方字体服务 `fontsapi.zeoseven.com` 加载 LXGW 975 圆体。若站点访问该服务较慢，可在「品牌与首屏」中关闭，正文会自动回退到苹方、HarmonyOS Sans、微软雅黑或系统字体。
+- **内置字体**：主题随包分发 LXGW 975 圆体（OFL-1.1），按 `unicode-range` 分片，浏览器只下载当前页面用到的分片，不请求第三方服务。若不需要，可在「品牌与首屏」中关闭，正文会自动回退到苹方、HarmonyOS Sans、微软雅黑或系统字体。
 - **文章目录**：仅在正文包含 `h2` / `h3` 时生成；纯图片或短文章会自动使用无目录的窄版心。
 - **瞬间页面**：`/moments` 与 `/moments/{name}` 由「瞬间」插件提供路由，主题覆盖其前台模板；未安装插件时这些地址不可用，属于预期行为。
 - **友链与朋友圈**：`/links`、`/friends` 分别依赖「链接管理」「朋友圈」插件。
@@ -157,7 +157,7 @@
 | 首页没有瞬间区块       | 安装并启用「瞬间」插件，确认主题设置已开启，且插件中已有内容 |
 | 搜索按钮不显示         | 安装并启用「搜索组件」插件                                   |
 | 文章页没有目录         | 确认文章正文使用了 `h2` / `h3`，且「显示文章目录」已开启     |
-| 字体加载慢或显示异常   | 关闭「启用在线中文字体」，使用系统字体                       |
+| 字体加载慢或显示异常   | 关闭「启用内置中文字体」，使用系统字体                       |
 | 友链页或朋友圈页 404   | 安装并启用对应插件                                           |
 | 评论区不显示           | 安装并启用评论组件，并确认文章/页面已开启评论                |
 | 关于页样式不对         | 编辑页面，在页面设置中选择「关于」自定义模板                 |
@@ -173,7 +173,7 @@
 ```bash
 pnpm install
 pnpm dev         # 监听 src/ 并持续构建 templates/
-pnpm build       # 类型检查 + 构建 templates/ + 打包 dist/halo-theme-narrate-1.0.0.zip
+pnpm build       # 类型检查 + 构建 templates/ + 打包 dist/halo-theme-narrate-2.1.1.zip
 pnpm build-only  # 仅类型检查与构建，不打包 ZIP
 pnpm check       # 格式化、Lint 与类型检查
 ```
@@ -190,5 +190,5 @@ pnpm check       # 格式化、Lint 与类型检查
 - 主题代码以 [GPL-3.0](./LICENSE) 发布。
 - 视觉与内容结构移植自 Typecho 主题 **Narrate · 叙**（作者：Jane，<https://github.com/JaneLens>）。
 - 代码高亮：[highlight.js](https://highlightjs.org/)（BSD-3-Clause）；等宽字体：[JetBrains Mono](https://www.jetbrains.com/lp/mono/)（OFL-1.1）。
-- 在线中文字体：LXGW 975 圆体（OFL-1.1），由第三方字体服务 `fontsapi.zeoseven.com` 提供。
+- 内置中文字体：LXGW 975 圆体（OFL-1.1），随主题分发，许可证见 `assets/fonts/lxgw/OFL.txt`。
 - 主题图标中的「叙」字使用 Noto Serif SC（OFL-1.1）轮廓绘制。

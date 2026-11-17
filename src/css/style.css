@@ -54,6 +54,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --bg: #121316;
   --bg-soft: #17181c;
   --surface: #1b1c20;
@@ -86,9 +87,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  /* 兜底：装饰性负边距元素不得产生横向滚动，clip 不创建滚动容器、不影响 sticky */
-  overflow-x: hidden;
-  overflow-x: clip;
+  /* 移动端移除系统默认的蓝色点按高亮，改用主题化按压态 */
+  -webkit-tap-highlight-color: transparent;
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -108,6 +108,11 @@ body {
   transition:
     background-color 0.35s ease,
     color 0.35s ease;
+  /* 横向溢出兜底放在 body：根元素 overflow 必须保持 visible，
+     搜索组件给 body 设置 overflow:hidden 时才能传播到视口锁定滚动，
+     否则滚动条不消失、它补偿的 padding-right 会把整页推向左侧 */
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
@@ -118,9 +123,10 @@ a {
 a:hover {
   color: var(--accent);
 }
-a:focus,
-button:focus {
-  outline: 0;
+/* 仅键盘导航显示焦点环；鼠标点击不出现描边 */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 img {
   max-width: 100%;
@@ -141,6 +147,15 @@ button {
   border: none;
   background: none;
   color: inherit;
+}
+/* 触摸设备：用轻微淡出替代系统蓝底，提供一致的点按反馈 */
+@media (hover: none) {
+  a:active,
+  button:active,
+  summary:active,
+  [role="button"]:active {
+    opacity: 0.68;
+  }
 }
 input,
 textarea,
@@ -182,7 +197,8 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 /* ---------- 滚动浮现 (scroll reveal) ---------- */
-.reveal {
+/* 仅在 JS 可用时隐藏待浮现元素，避免脚本失败导致内容不可见 */
+.js .reveal {
   opacity: 0;
   transform: translateY(26px);
   transition:
@@ -191,21 +207,21 @@ body::after {
   transition-delay: var(--d, 0s);
   will-change: opacity, transform;
 }
-.reveal.in {
+.js .reveal.in {
   opacity: 1;
   transform: none;
 }
-.reveal-left {
+.js .reveal-left {
   opacity: 0;
   transform: translateX(-26px);
 }
-.reveal-left.in {
+.js .reveal-left.in {
   opacity: 1;
   transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal-left {
+  .js .reveal,
+  .js .reveal-left {
     opacity: 1;
     transform: none;
     transition: none;
@@ -1170,7 +1186,7 @@ body::after {
   border-style: solid;
 }
 .moment--all:focus-visible {
-  outline: 2px solid var(--accent-line);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .moment--all__glyph {
@@ -2237,11 +2253,25 @@ html.swup-enabled.is-rendering .transition-main {
   background: var(--surface-2);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  opacity: 0;
-  transition: opacity 0.5s ease;
   cursor: zoom-in;
 }
-.post-content img.loaded {
+/* 表情与小图标：恢复行内排版，去掉配图边框、投影和放大光标 */
+.post-content img.emoji,
+.post-content img.is-small {
+  display: inline-block;
+  margin: 0 0.15em;
+  vertical-align: -0.15em;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  cursor: default;
+}
+/* 淡入同样只在 JS 可用时生效 */
+.js .post-content img {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.js .post-content img.loaded {
   opacity: 1;
 }
 .post-content blockquote {
@@ -2327,6 +2357,7 @@ html.swup-enabled.is-rendering .transition-main {
   display: block;
   width: 100%;
   height: auto;
+  margin: 0; /* 外边距交给 figure 统一控制，避免双重留白 */
   background: var(--surface-2); /* 图片未加载时的素底，深浅色跟随主题 */
   box-shadow: 0 8px 28px rgba(40, 33, 28, 0.07); /* 极轻投影，仅一层 */
 }
@@ -2356,10 +2387,72 @@ html.swup-enabled.is-rendering .transition-main {
   opacity: 0.55;
 }
 
+/* 编辑器原生 figure / figcaption 与 JS 包装的图注保持一致 */
+.post-content figure {
+  margin: 2.2rem auto;
+  text-align: center;
+}
+.post-content figcaption {
+  margin: 1rem auto 0;
+  max-width: 36em;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+/* 图片链接不再显示下划线，避免与图片边框叠成双线 */
+.post-content a:has(> img),
+.post-content a:has(> picture) {
+  border-bottom: none;
+}
+
+/* 视频 / 音频：块级居中、宽度自适应，消除默认黑边与溢出 */
+.post-content video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  margin: 1.8em auto;
+  background: #000;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.post-content audio {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 1.6em 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+}
+
+/* 内嵌播放器：通用限制不溢出；常见视频站点锁定 16:9，随容器等比缩放 */
+.post-content iframe {
+  display: block;
+  max-width: 100%;
+  margin: 1.8em auto;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+}
+.post-content iframe[src*="bilibili"],
+.post-content iframe[src*="youtube"],
+.post-content iframe[src*="youtu.be"],
+.post-content iframe[src*="vimeo"] {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
 /* 窄屏：收一下边距与圆角 */
 @media (max-width: 640px) {
   .post-content .post__image {
     margin: 1.8rem auto;
+  }
+  .post-content video,
+  .post-content iframe {
+    margin: 1.4em auto;
   }
 }
 
@@ -2633,14 +2726,27 @@ html.swup-enabled.is-rendering .transition-main {
 }
 .links_sort_menu {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 .links_sort_menu button {
-  padding: 5px 12px;
+  padding: 6px 14px;
   border: 1px solid var(--border);
+  border-radius: 999px;
   background: var(--surface);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
   cursor: pointer;
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+.links_sort_menu button:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
 }
 .links_sort_menu button.active {
   background: var(--accent);
@@ -2945,8 +3051,11 @@ html.swup-enabled.is-rendering .transition-main {
 .link-stats {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: 30px 0 34px;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 30px 0 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.1em;
@@ -2962,6 +3071,9 @@ html.swup-enabled.is-rendering .transition-main {
   width: 1px;
   height: 12px;
   background: var(--border);
+}
+.link-stats > .links_sort_menu {
+  margin-left: auto;
 }
 .link-grid {
   display: grid;
@@ -2988,6 +3100,10 @@ html.swup-enabled.is-rendering .transition-main {
   transform: translateY(-4px);
   border-color: var(--accent-line);
   box-shadow: var(--shadow);
+}
+/* 分组筛选：仅隐藏，不破坏网格布局 */
+.link-card.is-hidden {
+  display: none;
 }
 
 /* mono 描边序号，左上 */
@@ -3041,20 +3157,31 @@ html.swup-enabled.is-rendering .transition-main {
   margin-bottom: 10px;
   padding-right: 52px;
 }
+/* 图标容器：首字母渐变底 + 图片覆盖，图片失败时移除图片即回退 */
 .link-card__avatar {
+  position: relative;
   width: 46px;
   height: 46px;
   flex: none;
-  object-fit: cover;
-  background: linear-gradient(150deg, #a34e48, #c2605a 58%, #dd928b);
-  color: #fff;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  background: linear-gradient(150deg, #a34e48, #c2605a 58%, #dd928b);
+  color: #fff;
   font-family: var(--font-sans);
   font-size: 19px;
   font-weight: 700;
+  line-height: 1;
   box-shadow: 0 0 0 1px var(--border);
   transition: box-shadow 0.3s;
+}
+.link-card__avatar-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--surface-2);
 }
 .link-card:hover .link-card__avatar {
   box-shadow: 0 0 0 1px var(--accent-line);
@@ -3071,28 +3198,12 @@ html.swup-enabled.is-rendering .transition-main {
 .link-card__host {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.08em;
   color: var(--text-muted);
-}
-.link-card__host i {
-  width: 4px;
-  height: 4px;
-  display: inline-block;
-  border-radius: 50%;
-  background: var(--text-muted);
-  vertical-align: middle;
-  flex: none;
-  transition:
-    background-color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.link-card__host i.online {
-  background-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .link-card__desc {
   font-size: 12.5px;
@@ -4491,11 +4602,33 @@ body.lightbox-open {
   overflow: hidden;
 }
 
-/* 移动端：友链筛选条可横向滚动 */
+/* 移动端：友链筛选条整行排列并可横向滚动 */
 @media (max-width: 640px) {
+  .link-stats {
+    gap: 10px 14px;
+  }
+  .link-stats > .links_sort_menu {
+    margin-left: 0;
+    width: 100%;
+  }
   .links_sort_menu {
+    flex-wrap: nowrap;
     overflow-x: auto;
     max-width: 100%;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .links_sort_menu::-webkit-scrollbar {
+    display: none;
+  }
+  .links_sort_menu button {
+    flex: none;
+  }
+  .link-grid {
+    gap: 12px;
+  }
+  .link-card {
+    padding: 16px 16px 15px;
   }
 }
 
@@ -4707,12 +4840,12 @@ body.lightbox-open {
 .link-apply__form textarea {
   width: 100%;
   padding: 10px 12px;
-  font-size: 14px;
+  /* 不低于 16px，避免 iOS Safari 聚焦时自动放大页面 */
+  font-size: 16px;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
-  outline: none;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
@@ -4824,7 +4957,7 @@ body.lightbox-open {
 /* 单行省略号 */
 .brand__name,
 .link-item__name,
-.js-host,
+.link-card__url,
 .tag-cloud a,
 .post-tags a,
 .spotlight-main__cat {
@@ -4865,11 +4998,12 @@ body.lightbox-open {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* 站点名称过长时单行省略，避免撑高或压住角标 */
 .link-card__name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  max-width: 100%;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cat-section__desc {
   display: -webkit-box;

@@ -47,6 +47,9 @@
             th:if="${not #strings.isEmpty(post.owner?.avatar)}"
             th:src="${post.owner.avatar}"
             th:alt="${post.owner?.displayName ?: site.title}"
+            width="30"
+            height="30"
+            decoding="async"
           />
           <!-- 固定回退：作者未设置头像时使用主题内置头像 -->
           <img
@@ -54,6 +57,9 @@
             th:unless="${not #strings.isEmpty(post.owner?.avatar)}"
             th:src="@{/assets/images/avatar.jpg}"
             th:alt="${site.title}"
+            width="30"
+            height="30"
+            decoding="async"
           />
           <b th:text="${post.owner?.displayName ?: site.title}">作者</b>
         </a>

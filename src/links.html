@@ -16,14 +16,16 @@
 
   <div class="page-wrap container">
     <div class="link-stats">
-      <span><b th:text="${#lists.size(links)}">0</b> 个站点</span>
-      <i th:if="${not #lists.isEmpty(simpleGroups)}"></i>
+      <span class="link-stats__count"><b th:text="${#lists.size(links)}">0</b> 个站点</span>
       <div class="links_sort_menu" th:if="${not #lists.isEmpty(simpleGroups)}">
-        <button type="button" class="active" data-filter="all" th:text="'全部'">全部</button>
+        <button type="button" class="active" data-filter="all" aria-pressed="true" th:text="'全部'">
+          全部
+        </button>
         <button
           type="button"
           th:each="item : ${simpleGroups}"
           th:attr="data-filter=${item.metadata.name}"
+          aria-pressed="false"
           th:text="${item.spec.displayName}"
         ></button>
       </div>
@@ -36,7 +38,7 @@
         th:href="${link.spec.url}"
         target="_blank"
         rel="noopener noreferrer"
-        th:attr="data-name=${link.spec.displayName},data-group=${link.spec.groupName ?: ''}"
+        th:attr="data-group=${link.spec.groupName ?: ''}"
       >
         <span class="link-card__index" aria-hidden="true"></span>
         <span class="link-card__arrow" aria-hidden="true">
@@ -52,21 +54,39 @@
           </svg>
         </span>
         <div class="link-card__head">
-          <img
-            class="link-card__avatar"
-            th:if="${not #strings.isEmpty(link.spec.logo)}"
-            th:src="${link.spec.logo}"
-            th:alt="${link.spec.displayName}"
-            loading="lazy"
-          />
-          <span
-            class="link-card__avatar"
-            th:if="${#strings.isEmpty(link.spec.logo)}"
-            th:text="${#strings.substring(link.spec.displayName, 0, 1)}"
-          ></span>
+          <!-- 图标始终渲染首字母作底，图片加载成功时覆盖，失败时自然露出 -->
+          <span class="link-card__avatar" aria-hidden="true">
+            <span
+              class="link-card__avatar-letter"
+              th:text="${#strings.substring(link.spec.displayName, 0, 1)}"
+              >?</span
+            >
+            <img
+              class="link-card__avatar-img"
+              th:if="${not #strings.isEmpty(link.spec.logo)}"
+              th:src="${link.spec.logo}"
+              alt=""
+              width="46"
+              height="46"
+              loading="lazy"
+              decoding="async"
+            />
+          </span>
           <div class="link-card__intro">
-            <p class="link-card__name" th:text="${link.spec.displayName}">站点</p>
-            <p class="link-card__host"><i></i><span class="js-host"></span></p>
+            <p
+              class="link-card__name"
+              th:text="${link.spec.displayName}"
+              th:title="${link.spec.displayName}"
+            >
+              站点
+            </p>
+            <p class="link-card__host">
+              <span
+                class="link-card__url"
+                th:text="${link.spec.url}"
+                th:title="${link.spec.url}"
+              ></span>
+            </p>
           </div>
         </div>
         <p
@@ -167,6 +187,9 @@
                 th:src="@{/links/apply/captcha}"
                 alt="验证码"
                 title="点击刷新验证码"
+                width="118"
+                height="42"
+                decoding="async"
               />
             </span>
           </label>

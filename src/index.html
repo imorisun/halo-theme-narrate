@@ -46,7 +46,11 @@
         th:text="${#strings.isEmpty(theme.config.brand?.site_slogan) ? (site.subtitle ?: '一方文字自留地，记录生活、阅读与随想。') : theme.config.brand.site_slogan}"
       ></p>
 
-      <div class="hero__meta">
+      <div
+        class="hero__meta"
+        th:with="categoryCount=${#lists.size(categoryFinder.listAll())},
+                 tagCount=${#lists.size(tagFinder.listAll())}"
+      >
         <div>
           <strong
             ><span th:attr="data-count=${posts.total}" th:text="${posts.total}">0</span
@@ -56,20 +60,14 @@
         </div>
         <div>
           <strong
-            ><span
-              th:attr="data-count=${#lists.size(categoryFinder.listAll())}"
-              th:text="${#lists.size(categoryFinder.listAll())}"
-              >0</span
+            ><span th:attr="data-count=${categoryCount}" th:text="${categoryCount}">0</span
             ><em>类</em></strong
           >
           分类
         </div>
         <div>
           <strong
-            ><span
-              th:attr="data-count=${#lists.size(tagFinder.listAll())}"
-              th:text="${#lists.size(tagFinder.listAll())}"
-              >0</span
+            ><span th:attr="data-count=${tagCount}" th:text="${tagCount}">0</span
             ><em>个</em></strong
           >
           标签
@@ -151,6 +149,10 @@
                 th:if="${not #strings.isEmpty(cover)}"
                 th:src="${cover}"
                 th:alt="${post.spec.title}"
+                width="1600"
+                height="1000"
+                fetchpriority="high"
+                decoding="async"
               />
               <div th:if="${#strings.isEmpty(cover)}" class="ph" th:classappend="${phClass}">
                 <span
@@ -300,7 +302,10 @@
                       th:if="${content.medium[0].type.name == 'PHOTO'}"
                       th:src="${content.medium[0].url}"
                       th:alt="瞬间"
+                      width="178"
+                      height="126"
                       loading="lazy"
+                      decoding="async"
                     />
                     <video
                       class="moment-img"

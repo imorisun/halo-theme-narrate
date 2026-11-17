@@ -15,7 +15,10 @@
           th:if="${not #strings.isEmpty(author.spec.avatar)}"
           th:src="${author.spec.avatar}"
           th:alt="${author.spec.displayName}"
+          width="64"
+          height="64"
           loading="lazy"
+          decoding="async"
         />
         <div>
           <h1 class="page-hero__title" th:text="${author.spec.displayName}">作者</h1>
@@ -70,7 +73,10 @@
             th:if="${not #strings.isEmpty(cover)}"
             th:src="${cover}"
             th:alt="${post.spec.title}"
+            width="138"
+            height="92"
             loading="lazy"
+            decoding="async"
           />
           <span th:if="${#strings.isEmpty(cover)}" class="ph" th:classappend="${phClass}">
             <span class="ph__char" th:text="${#strings.substring(post.spec.title, 0, 1)}"></span>

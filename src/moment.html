@@ -27,12 +27,18 @@
             th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
             th:src="${moment.owner.avatar}"
             th:alt="${moment.owner.displayName}"
+            width="42"
+            height="42"
+            decoding="async"
           />
           <img
             class="moment-detail__avatar"
             th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
             th:src="@{/assets/images/avatar.jpg}"
             th:alt="${site.title}"
+            width="42"
+            height="42"
+            decoding="async"
           />
         </a>
         <div class="moment-detail__meta">

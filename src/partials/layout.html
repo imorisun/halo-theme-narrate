@@ -12,14 +12,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#fbfbfa" />
-    <!-- 在线中文字体（第三方字体服务）：可在主题设置中关闭，关闭后使用系统字体 -->
+    <!-- 自托管中文字体：LXGW 975 圆体（OFL-1.1），随主题分发，不请求第三方服务 -->
     <link
       rel="stylesheet"
       th:if="${theme.config.brand?.enable_web_font != false}"
-      href="https://fontsapi.zeoseven.com/184/main/result.css"
+      th:href="@{/assets/fonts/lxgw.css}"
     />
     <script>
       (function () {
+        // 渐进增强标记：仅在 JS 可用时才允许 CSS 隐藏待浮现内容
+        document.documentElement.classList.add("js");
+        // 模块脚本加载失败时撤销标记，确保内容仍然可见
+        window.addEventListener(
+          "error",
+          function (event) {
+            if (event.target && event.target.tagName === "SCRIPT") {
+              document.documentElement.classList.remove("js");
+            }
+          },
+          true,
+        );
         var saved = null;
         try {
           saved = localStorage.getItem("narrate-theme");
@@ -32,6 +44,11 @@
         document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
         // 同步给 Halo 插件组件（评论 / 搜索等），其内置暗色方案依赖该属性
         document.documentElement.setAttribute("data-color-scheme", dark ? "dark" : "light");
+        // 移动端地址栏颜色跟随主题
+        var themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+          themeColorMeta.setAttribute("content", dark ? "#121316" : "#fbfbfa");
+        }
       })();
     </script>
     <slot name="head"></slot>
@@ -49,6 +66,9 @@
             th:if="${not #strings.isEmpty(site.logo)}"
             th:src="${site.logo}"
             th:alt="${site.title}"
+            width="30"
+            height="30"
+            decoding="async"
           />
           <span class="brand__name">
             <span th:text="${site.title}">Narrate</span>

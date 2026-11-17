@@ -1,7 +1,4 @@
-<aside
-  class="sidebar"
-  th:with="popular=${postFinder.list(1, 5)}, sitePostCount=${postFinder.list(1, 1).total}"
->
+<aside class="sidebar" th:with="popular=${postFinder.list(1, 5)}">
   <div class="widget">
     <h3 class="widget__title" th:text="'热门文章'">热门文章</h3>
     <div class="widget-card">
@@ -57,7 +54,10 @@
           th:if="${not #strings.isEmpty(link.spec.logo)}"
           th:src="${link.spec.logo}"
           th:alt="${link.spec.displayName}"
+          width="30"
+          height="30"
           loading="lazy"
+          decoding="async"
         />
         <div>
           <div class="link-item__name" th:text="${link.spec.displayName}"></div>
@@ -77,7 +77,7 @@
       <ul class="about-info">
         <li>
           <span class="k">文章</span>
-          <span class="v" th:text="${sitePostCount}">0</span>
+          <span class="v" th:text="${popular.total}">0</span>
         </li>
         <li>
           <span class="k">分类</span>

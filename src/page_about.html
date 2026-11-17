@@ -22,6 +22,9 @@
           class="about-card__avatar"
           th:src="@{${site.logo ?: '/assets/images/avatar.jpg'}}"
           th:alt="${site.title}"
+          width="92"
+          height="92"
+          decoding="async"
         />
         <h2 class="about-card__name" th:text="${site.title}">Narrate</h2>
         <div class="about-card__role">WRITER · DESIGNER</div>
@@ -32,37 +35,27 @@
       </aside>
 
       <div>
-        <div class="stat-grid">
+        <div
+          class="stat-grid"
+          th:with="postCount=${postFinder.list(1, 1).total},
+                   categoryCount=${#lists.size(categoryFinder.listAll())},
+                   tagCount=${#lists.size(tagFinder.listAll())},
+                   linkCount=${pluginFinder.available('PluginLinks') ? linkFinder.count() : 0}"
+        >
           <div class="stat-cell">
-            <b
-              th:attr="data-count=${postFinder.list(1, 1).total}"
-              th:text="${postFinder.list(1, 1).total}"
-              >0</b
-            >
+            <b th:attr="data-count=${postCount}" th:text="${postCount}">0</b>
             <span>篇文章</span>
           </div>
           <div class="stat-cell">
-            <b
-              th:attr="data-count=${#lists.size(categoryFinder.listAll())}"
-              th:text="${#lists.size(categoryFinder.listAll())}"
-              >0</b
-            >
+            <b th:attr="data-count=${categoryCount}" th:text="${categoryCount}">0</b>
             <span>个分类</span>
           </div>
           <div class="stat-cell">
-            <b
-              th:attr="data-count=${#lists.size(tagFinder.listAll())}"
-              th:text="${#lists.size(tagFinder.listAll())}"
-              >0</b
-            >
+            <b th:attr="data-count=${tagCount}" th:text="${tagCount}">0</b>
             <span>个标签</span>
           </div>
           <div class="stat-cell">
-            <b
-              th:attr="data-count=${pluginFinder.available('PluginLinks') ? linkFinder.count() : 0}"
-              th:text="${pluginFinder.available('PluginLinks') ? linkFinder.count() : 0}"
-              >0</b
-            >
+            <b th:attr="data-count=${linkCount}" th:text="${linkCount}">0</b>
             <span>位朋友</span>
           </div>
         </div>

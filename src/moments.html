@@ -65,14 +65,20 @@
                 th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
                 th:src="${moment.owner.avatar}"
                 th:alt="${moment.owner.displayName}"
+                width="26"
+                height="26"
                 loading="lazy"
+                decoding="async"
               />
               <img
                 class="mcard__avatar"
                 th:unless="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
                 th:src="@{/assets/images/avatar.jpg}"
                 th:alt="${site.title}"
+                width="26"
+                height="26"
                 loading="lazy"
+                decoding="async"
               />
               <span class="mcard__author" th:text="${moment.owner?.displayName ?: site.title}"
                 >作者</span
@@ -103,6 +109,8 @@
                 th:if="${content.medium[0].type.name == 'PHOTO'}"
                 th:src="${content.medium[0].url}"
                 alt="瞬间"
+                width="640"
+                height="400"
                 loading="lazy"
                 decoding="async"
               />

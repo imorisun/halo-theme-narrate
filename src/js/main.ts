@@ -65,6 +65,9 @@ function initThemeToggle() {
     const dark = root.getAttribute("data-theme") === "dark";
     // Halo 插件组件（评论 / 搜索等）通过该属性读取当前配色
     root.setAttribute("data-color-scheme", dark ? "dark" : "light");
+    // 移动端地址栏颜色跟随主题切换
+    const themeColorMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (themeColorMeta) themeColorMeta.content = dark ? "#121316" : "#fbfbfa";
     if (sun) sun.style.display = dark ? "none" : "block";
     if (moon) moon.style.display = dark ? "block" : "none";
   };
@@ -429,6 +432,29 @@ function moveLightbox(step: number) {
   if (lightboxCount) lightboxCount.textContent = `${lightboxIndex + 1} / ${lightboxItems.length}`;
 }
 
+let lightboxScrollLocked = false;
+let savedBodyPaddingRight = "";
+
+/**
+ * 灯箱开关时锁定 / 解锁页面滚动。
+ * 隐藏滚动条会让视口变宽，必须先按滚动条宽度补 body 内边距，
+ * 否则正文会整体向右跳一下，关闭时再跳回来。
+ */
+function setLightboxScrollLock(locked: boolean) {
+  if (locked === lightboxScrollLocked) return;
+  lightboxScrollLocked = locked;
+  if (locked) {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    savedBodyPaddingRight = document.body.style.paddingRight;
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    document.body.classList.add("lightbox-open");
+  } else {
+    document.body.classList.remove("lightbox-open");
+    document.body.style.paddingRight = savedBodyPaddingRight;
+    savedBodyPaddingRight = "";
+  }
+}
+
 function openLightbox(items: LightboxItem[], index: number) {
   const element = ensureLightbox();
   lightboxItems = items;
@@ -440,7 +466,7 @@ function openLightbox(items: LightboxItem[], index: number) {
   }
   if (lightboxCount) lightboxCount.textContent = `${index + 1} / ${items.length}`;
   element.classList.add("open");
-  document.body.classList.add("lightbox-open");
+  setLightboxScrollLock(true);
 }
 
 function initContentImages() {
@@ -449,6 +475,8 @@ function initContentImages() {
     qsa<HTMLImageElement>("img", content).forEach((image) => {
       if (!image.hasAttribute("loading")) image.setAttribute("loading", "lazy");
       if (!image.hasAttribute("decoding")) image.setAttribute("decoding", "async");
+      // 表情 / 小图标保持行内显示，不套用正文配图的边框与留白
+      if (isTinyImage(image)) image.classList.add("is-small");
 
       const parent = image.parentElement;
       const isSoloImage =
@@ -481,13 +509,24 @@ function initContentImages() {
         image.addEventListener("error", () => image.classList.add("loaded"), { once: true });
       }
     });
+    // 内嵌播放器延后加载，避免文章首屏被多个 iframe 拖慢
+    qsa<HTMLIFrameElement>("iframe", content).forEach((frame) => {
+      if (!frame.hasAttribute("loading")) frame.setAttribute("loading", "lazy");
+    });
   }
 }
 
 function closeLightbox() {
   if (!lightbox) return;
   lightbox.classList.remove("open");
-  document.body.classList.remove("lightbox-open");
+  setLightboxScrollLock(false);
+}
+
+/** 表情、图标等小尺寸图片不进入灯箱，放大后只会变成模糊色块 */
+function isTinyImage(image: HTMLImageElement) {
+  const width = Number(image.getAttribute("width"));
+  const height = Number(image.getAttribute("height"));
+  return (width > 0 && width < 80) || (height > 0 && height < 80);
 }
 
 /** 灯箱使用事件委托，只需在全局初始化一次 */
@@ -499,6 +538,7 @@ function initImageLightbox() {
       const target = event.target as HTMLElement;
       if (target.tagName !== "IMG") return;
       if (target.closest(".narrate-lightbox")) return;
+      if (isTinyImage(target as HTMLImageElement)) return;
       if (
         event.metaKey ||
         event.ctrlKey ||
@@ -519,6 +559,7 @@ function initImageLightbox() {
       const items = qsa<HTMLImageElement>("img", scope)
         .filter((image) => !image.closest(".narrate-lightbox"))
         .filter((image) => !image.classList.contains("emoji"))
+        .filter((image) => !isTinyImage(image))
         .map((image) => ({ src: image.currentSrc || image.src, alt: image.alt }))
         .filter((item) => item.src);
 
@@ -598,40 +639,14 @@ function initToc() {
 /* ---------------- 友链卡片 ---------------- */
 function initLinkCards() {
   qsa<HTMLAnchorElement>(".link-grid .link-card").forEach((card) => {
-    let host = "";
-    try {
-      host = new URL(card.href).hostname;
-    } catch {
-      host = "";
+    // 图标加载失败时移除图片，露出底层的首字母占位
+    const image = qs<HTMLImageElement>(".link-card__avatar-img", card);
+    if (!image) return;
+    if (image.complete && image.naturalWidth === 0) {
+      image.remove();
+      return;
     }
-    const hostElement = qs<HTMLElement>(".js-host", card);
-    if (hostElement && host) hostElement.textContent = host;
-
-    const avatars = qsa<HTMLElement>(".link-card__avatar", card);
-    const image = avatars[0];
-    const letter = avatars[1];
-    const name = card.dataset.name ?? "";
-    if (letter && name) letter.textContent = name.charAt(0);
-
-    if (image instanceof HTMLImageElement) {
-      if (!image.getAttribute("src") || image.style.display === "none") {
-        image.hidden = true;
-        if (letter) letter.style.display = "grid";
-      } else {
-        image.addEventListener(
-          "error",
-          () => {
-            image.hidden = true;
-            if (letter) letter.style.display = "grid";
-          },
-          { once: true },
-        );
-      }
-    }
-
-    const status = qs<HTMLElement>(".link-card__host i", card);
-    status?.classList.add("online");
-    if (status) status.title = "可访问";
+    image.addEventListener("error", () => image.remove(), { once: true });
   });
 
   const stats = qs<HTMLElement>(".link-stats");
@@ -651,11 +666,16 @@ function initLinkFilter() {
 
   const buttons = qsa<HTMLButtonElement>("button[data-filter]", menu);
   buttons.forEach((button) => {
+    button.setAttribute("aria-pressed", button.classList.contains("active") ? "true" : "false");
     button.addEventListener("click", () => {
       const filter = button.dataset.filter ?? "all";
-      buttons.forEach((item) => item.classList.toggle("active", item === button));
+      buttons.forEach((item) => {
+        const active = item === button;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-pressed", active ? "true" : "false");
+      });
       qsa<HTMLElement>("a.link-card", grid).forEach((card) => {
-        card.style.display = filter === "all" || card.dataset.group === filter ? "" : "none";
+        card.classList.toggle("is-hidden", filter !== "all" && card.dataset.group !== filter);
       });
     });
   });
