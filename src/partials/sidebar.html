@@ -1,6 +1,11 @@
-<aside class="sidebar" th:with="popular=${postFinder.list(1, 5)}">
+<aside
+  class="sidebar"
+  th:with="popular=${postFinder.list(1, 5)},
+           allTags=${tagFinder.listAll()},
+           allCategories=${categoryFinder.listAll()}"
+>
   <div class="widget">
-    <h3 class="widget__title" th:text="'热门文章'">热门文章</h3>
+    <h3 class="widget__title" th:text="'最新文章'">最新文章</h3>
     <div class="widget-card">
       <!-- 固定文案：Halo Finder 暂不支持按访问量排序，此处展示最新文章 -->
       <a class="link-item" th:each="item : ${popular.items}" th:href="@{${item.status.permalink}}">
@@ -29,7 +34,7 @@
     <div class="widget-card">
       <div class="tag-cloud">
         <a
-          th:each="tag, tagStat : ${tagFinder.listAll()}"
+          th:each="tag, tagStat : ${allTags}"
           th:if="${tagStat.index < 24}"
           th:href="@{${tag.status.permalink}}"
           th:text="${tag.spec.displayName}"
@@ -81,11 +86,11 @@
         </li>
         <li>
           <span class="k">分类</span>
-          <span class="v" th:text="${#lists.size(categoryFinder.listAll())}">0</span>
+          <span class="v" th:text="${#lists.size(allCategories)}">0</span>
         </li>
         <li>
           <span class="k">标签</span>
-          <span class="v" th:text="${#lists.size(tagFinder.listAll())}">0</span>
+          <span class="v" th:text="${#lists.size(allTags)}">0</span>
         </li>
         <li>
           <span class="k">驱动</span>

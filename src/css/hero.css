@@ -1,0 +1,305 @@
+/* =========================================================
+   首页 HERO — 巨幅编辑式首屏
+   ========================================================= */
+.hero {
+  position: relative;
+  /* 优先使用小视口高度，避免移动端地址栏收放导致首屏跳动；旧浏览器回退到 vh */
+  min-height: calc(100vh - var(--header-h));
+  min-height: calc(100svh - var(--header-h));
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 60px 0 110px;
+}
+/* 巨幅描边「叙」字 — 视觉锤 */
+.hero__glyph {
+  position: absolute;
+  right: -3vw;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-size: clamp(300px, 36vw, 600px);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--border);
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  transition: -webkit-text-stroke-color 0.35s ease;
+}
+[data-theme="dark"] .hero__glyph {
+  -webkit-text-stroke-color: #2b2d34;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -160px;
+  right: 6vw;
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, var(--accent-soft), transparent 68%);
+  pointer-events: none;
+}
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+}
+.hero__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 26px;
+}
+.hero__kicker::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: var(--accent-line);
+}
+.hero__kicker .pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2.2s ease infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-line);
+  }
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+.hero__statement {
+  font-family: var(--font-sans);
+  font-size: clamp(38px, 6.4vw, 78px);
+  line-height: 1.18;
+  margin: 0 0 24px;
+  letter-spacing: 0.01em;
+  font-weight: 700;
+}
+/* 旋转词 — 首屏动态记忆点 */
+.rot {
+  position: relative;
+  display: inline-block;
+  color: var(--accent);
+  max-width: 100%;
+}
+.rot::after {
+  content: "";
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: 0.08em;
+  height: 0.13em;
+  background: var(--accent-line);
+  border-radius: 999px;
+  opacity: 0.55;
+}
+.rot span {
+  display: inline-block;
+  animation: rotIn 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+@keyframes rotIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.hero__intro {
+  font-size: clamp(16px, 1.6vw, 18.5px);
+  color: var(--text-soft);
+  margin: 0 0 36px;
+  max-width: 600px;
+  line-height: 1.9;
+}
+.hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 44px;
+  margin-bottom: 38px;
+}
+.hero__meta div {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+.hero__meta strong {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 34px;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.hero__meta strong em {
+  font-style: normal;
+  color: var(--accent);
+}
+.hero__actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  padding: 13px 26px;
+  font-size: 14.5px;
+  font-weight: 500;
+  transition: 0.25s;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s;
+}
+.btn-primary:hover {
+  color: var(--accent-contrast);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--accent-line);
+}
+.btn-primary:hover svg {
+  transform: translateX(3px);
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 22px;
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 14.5px;
+  transition: 0.25s;
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--accent-line);
+  transform: translateY(-2px);
+}
+/* 底部滚动提示 */
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--text-muted);
+  z-index: 1;
+  text-transform: uppercase;
+}
+.hero__scroll::after {
+  content: "";
+  width: 1px;
+  height: 42px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  animation: scrollHint 1.8s ease infinite;
+}
+@keyframes scrollHint {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  51% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+/* ---------- 状态条：此刻 + 最新 (soul strip) ---------- */
+.statusbar {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.statusbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 14px 24px;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+.statusbar__cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.now-label {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  flex: none;
+}
+.now-time {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.now-greet {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--accent);
+}
+.statusbar__sep {
+  width: 1px;
+  height: 26px;
+  background: var(--border);
+  flex: none;
+}
+.statusbar__latest {
+  min-width: 0;
+}
+.statusbar__latest .now-label {
+  color: var(--accent);
+  letter-spacing: 0.18em;
+}
+.statusbar__latest a {
+  font-size: 14px;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.statusbar__latest a:hover {
+  color: var(--accent);
+}

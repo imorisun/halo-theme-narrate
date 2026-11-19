@@ -16,6 +16,8 @@
       th:if="${moment != null}"
       th:with="content=${moment.spec.content}"
     >
+      <!-- 页面级标题：读屏与 SEO 需要，视觉上隐藏 -->
+      <h1 class="sr-only" th:text="|${moment.owner?.displayName ?: site.title} 的瞬间|">瞬间</h1>
       <header class="moment-detail__head">
         <!-- 头像与昵称同为作者页入口 -->
         <a

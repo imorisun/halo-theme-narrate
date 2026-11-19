@@ -19,6 +19,7 @@
   <section class="page-hero">
     <span
       class="page-hero__glyph"
+      aria-hidden="true"
       th:text="${#strings.isEmpty(title) ? '图' : #strings.substring(title, 0, 1)}"
       >图</span
     >

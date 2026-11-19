@@ -4,7 +4,10 @@
   </template>
 
   <section class="page-hero">
-    <span class="page-hero__glyph" th:text="${#strings.substring(singlePage.spec.title, 0, 1)}"
+    <span
+      class="page-hero__glyph"
+      aria-hidden="true"
+      th:text="${#strings.substring(singlePage.spec.title, 0, 1)}"
       >关</span
     >
     <div class="container">

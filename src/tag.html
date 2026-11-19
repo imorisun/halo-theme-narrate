@@ -4,14 +4,17 @@
   </template>
 
   <section class="cat-hero">
-    <span class="page-hero__glyph" th:text="${#strings.substring(tag.spec.displayName, 0, 1)}"
+    <span
+      class="page-hero__glyph"
+      aria-hidden="true"
+      th:text="${#strings.substring(tag.spec.displayName, 0, 1)}"
       >标</span
     >
     <div class="container">
-      <div class="cat-hero__title">
+      <h1 class="cat-hero__title">
         <span th:text="${tag.spec.displayName}">标签</span>
         <em class="cat-hero__en" th:text="${#strings.toUpperCase(tag.spec.slug)}">TAG</em>
-      </div>
+      </h1>
       <div class="cat-hero__meta">
         <span>共</span>
         <b th:text="${posts.total}">0</b>
@@ -25,7 +28,7 @@
   </section>
 
   <div class="layout container">
-    <main class="cat-list" id="pager-region">
+    <div class="cat-list" id="pager-region">
       <a
         class="cat-row"
         th:each="post, iterStat : ${posts.items}"
@@ -75,7 +78,7 @@
       <th:block th:with="pager=${posts}, pagerBase=${tag.status.permalink}">
         <include src="pagination.html" />
       </th:block>
-    </main>
+    </div>
 
     <include src="sidebar.html" />
   </div>

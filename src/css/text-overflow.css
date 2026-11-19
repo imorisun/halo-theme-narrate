@@ -1,0 +1,150 @@
+/* =========================================================
+   文本溢出治理（长标题 / 长域名 / 长 URL / 超长标签名）
+   - 标题、名称、域名、标签等「单行语义」文本 → 省略号
+   - 摘要、描述等「多行语义」文本 → 定点行数截断
+   - 正文、目录、信息项等不可截断内容 → 强制断行，避免撑破布局
+   ========================================================= */
+
+/* 允许弹性 / 网格子项收缩，避免 min-content 把容器撑宽导致横向滚动 */
+.brand,
+.brand__name,
+.nav,
+.site-header__inner > *,
+.footer-grid > *,
+.footer-brand__name,
+.cat-section__head,
+.link-item > div,
+.link-card__intro,
+.link-card__host,
+.about-info .v,
+.archive-item__title,
+.ff-item__title,
+.post-nav__item,
+.comments__head,
+.comments__head-text,
+/* 网格子项与列表容器：禁止 min-content 撑宽整页 */
+.layout > *,
+.post > *,
+.about-grid > *,
+.cat-list,
+.sidebar,
+.post-copyright p {
+  min-width: 0;
+}
+
+/* 单行省略号 */
+.brand__name,
+.link-item__name,
+.link-card__url,
+.tag-cloud a,
+.post-tags a,
+.spotlight-main__cat {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 与右上角角标同排时预留空间，长分类名省略而不压住角标 */
+.spotlight-main__cat {
+  max-width: calc(100% - 128px);
+}
+
+.nav a {
+  display: inline-block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 移动端下拉菜单是纵向排列，取消单行限制，避免菜单名被 180px 截断 */
+.nav.nav--open a {
+  max-width: 100%;
+  white-space: normal;
+  overflow: visible;
+}
+
+/* 多行截断：摘要类不撑高卡片 */
+.spotlight-main__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.spotlight-main__excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* 站点名称过长时单行省略，避免撑高或压住角标 */
+.link-card__name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-section__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 强制断行：长 URL / 无空格长串不再撑破容器 */
+.rot,
+.hero__statement,
+.hero__intro,
+.page-hero__title,
+.page-hero__sub,
+.post-hero__title,
+.cat-hero__title,
+.error-page__title,
+.error-page__sub,
+.cat-section__name,
+.cat-section__en,
+.cat-row__title,
+.archive-item__title,
+.ff-item__title,
+.about-info .v,
+.link-card__desc,
+.footer-col p,
+.footer-brand__name,
+.footer-links a,
+.footer-bottom a,
+.toc__list li a,
+.moment__text {
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* 局部容器兜底 */
+.moment__text {
+  overflow-x: hidden;
+}
+.post-hero__kicker {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.comments__head {
+  flex-wrap: wrap;
+}
+.archive-item__cat {
+  flex: none;
+  max-width: 46%;
+}
+.link-card__host {
+  overflow: hidden;
+}
+.tag-cloud--page a {
+  min-width: 0;
+  max-width: 100%;
+}
+.tag-cloud--page a em {
+  flex: none;
+}
+.tag-cloud--page a span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

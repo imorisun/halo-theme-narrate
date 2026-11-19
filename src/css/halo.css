@@ -1,0 +1,180 @@
+/* =========================================================
+   Halo 适配层
+   - 搜索组件（plugin-search-widget）配色
+   - 评论组件容器间距
+   - 图片灯箱（替代原 view-image 插件）
+   - 友链分组筛选
+   ========================================================= */
+:root {
+  --halo-search-widget-base-font-family: var(--font-sans);
+  --halo-search-widget-base-bg-color: var(--surface);
+  --halo-search-widget-primary-color: var(--accent);
+  --halo-search-widget-muted-color: var(--text-muted);
+  --halo-search-widget-content-color: var(--text);
+  --halo-search-widget-modal-bg-color: var(--surface);
+  --halo-search-widget-modal-layer-color: var(--overlay);
+  --halo-search-widget-hit-bg-color: var(--surface-2);
+  --halo-search-widget-divider-color: var(--border);
+  --halo-search-widget-kbd-border-color: var(--border);
+  --halo-search-widget-base-rounded: var(--radius-sm);
+}
+
+/* 评论组件（plugin-comment-widget v3+）：通过官方 CSS 变量注入主题色，
+   组件为 Shadow DOM，外部选择器无法直达，只有变量可以穿透。
+   用 html[data-theme] 提升优先级，避免被插件自带的暗色变量覆盖；
+   var() 引用主题令牌，因此浅色 / 深色切换无需重复声明。 */
+html[data-theme] {
+  --halo-cw-primary-1-color: var(--accent);
+  --halo-cw-primary-2-color: color-mix(in srgb, var(--accent) 55%, var(--surface));
+  --halo-cw-primary-3-color: var(--accent-soft);
+  --halo-cw-primary-contrast-color: var(--accent-contrast);
+  --halo-cw-text-1-color: var(--text);
+  --halo-cw-text-2-color: var(--text-soft);
+  --halo-cw-text-3-color: var(--text-muted);
+  --halo-cw-muted-1-color: var(--border-strong);
+  --halo-cw-muted-2-color: var(--surface-2);
+  --halo-cw-muted-3-color: var(--surface-2);
+  --halo-cw-base-rounded: var(--radius-sm);
+  --halo-cw-base-font-family: var(--font-sans);
+}
+/* 深色模式下表情选择器同样需要跟随（组件内置暗色方案依赖这些变量） */
+html[data-theme="dark"] {
+  --halo-cw-emoji-picker-rgb-color: 231, 232, 234;
+  --halo-cw-emoji-picker-rgb-accent: 217, 138, 132;
+  --halo-cw-emoji-picker-rgb-background: 18, 19, 22;
+  --halo-cw-emoji-picker-rgb-input: 27, 28, 32;
+  --halo-cw-emoji-picker-color-border: rgba(255, 255, 255, 0.12);
+  --halo-cw-emoji-picker-color-border-over: rgba(255, 255, 255, 0.24);
+}
+
+/* Halo 评论组件：与原主题评论区保持同一节奏 */
+.comments halo-comment {
+  display: block;
+  max-width: 100%;
+  margin-top: 8px;
+}
+
+.comments-disabled {
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 40px 0;
+}
+
+/* 图片灯箱 */
+.narrate-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vmin;
+  background: rgba(10, 10, 12, 0.88);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+}
+.narrate-lightbox.open {
+  opacity: 1;
+  visibility: visible;
+}
+.narrate-lightbox img {
+  max-width: 92vw;
+  max-height: 86vh;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  transform: scale(0.97);
+  transition: transform 0.25s ease;
+}
+.narrate-lightbox.open img {
+  transform: scale(1);
+}
+/* 程序化聚焦容器时不显示焦点环，焦点环仍保留在内部按钮上 */
+.narrate-lightbox:focus {
+  outline: none;
+}
+/* 单图时不出现翻页按钮与计数 */
+.narrate-lightbox__btn[hidden],
+.narrate-lightbox__count[hidden] {
+  display: none;
+}
+.narrate-lightbox__btn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.narrate-lightbox__btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.narrate-lightbox__close {
+  top: 24px;
+  right: 24px;
+}
+.narrate-lightbox__prev {
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.narrate-lightbox__next {
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.narrate-lightbox__count {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+body.lightbox-open {
+  overflow: hidden;
+}
+
+/* 移动端：友链筛选条整行排列并可横向滚动 */
+@media (max-width: 640px) {
+  .link-stats {
+    gap: 10px 14px;
+  }
+  .link-stats > .links_sort_menu {
+    margin-left: 0;
+    width: 100%;
+  }
+  .links_sort_menu {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .links_sort_menu::-webkit-scrollbar {
+    display: none;
+  }
+  .links_sort_menu button {
+    flex: none;
+  }
+  .link-grid {
+    gap: 12px;
+  }
+  .link-card {
+    padding: 16px 16px 15px;
+  }
+}

@@ -6,6 +6,7 @@
   <section class="hero">
     <span
       class="hero__glyph"
+      aria-hidden="true"
       th:text="${#strings.isEmpty(theme.config.brand?.hero_glyph) ? '叙' : theme.config.brand.hero_glyph}"
       >叙</span
     >

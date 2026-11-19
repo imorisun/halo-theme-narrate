@@ -56,7 +56,7 @@
   </head>
 
   <body th:class="|tpl-${_templateId ?: 'page'}|">
-    <div class="read-progress" id="readProgress"></div>
+    <div class="read-progress" id="readProgress" aria-hidden="true"></div>
 
     <header class="site-header">
       <div class="site-header__inner container">
@@ -143,7 +143,6 @@
               stroke-width="1.8"
               stroke-linecap="round"
               stroke-linejoin="round"
-              style="display: none"
             >
               <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
             </svg>
@@ -154,6 +153,7 @@
             type="button"
             aria-label="菜单"
             aria-expanded="false"
+            aria-controls="nav"
           >
             <svg
               viewBox="0 0 24 24"

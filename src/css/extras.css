@@ -1,0 +1,287 @@
+/* =========================================================
+   Halo 模板补充：分页 / 无目录文章 / 标签页 / 作者页 /
+   友链申请表单 / 错误页
+   ========================================================= */
+.pagination {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+/* 页码链接铺满按钮，保持原有 38px 按钮尺寸与悬停样式 */
+.pagination a {
+  display: inline-grid;
+  place-items: center;
+  align-self: stretch;
+  justify-self: stretch;
+  color: inherit;
+  text-decoration: none;
+}
+.pagination a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* 当前页保持反白，不被通用 hover 覆盖 */
+.pagination .current:hover {
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+/* 边界禁用态：保留占位，避免页码位置跳动 */
+.pagination .disabled {
+  color: var(--text-muted);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.pagination .disabled:hover {
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+/* 省略号：无边框无底色，仅作视觉折叠 */
+.pagination .ellipsis {
+  min-width: 22px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+.pagination .ellipsis:hover {
+  color: var(--text-muted);
+  border-color: transparent;
+}
+
+@media (max-width: 640px) {
+  .page-navigator {
+    margin-top: 32px;
+  }
+  .pagination {
+    gap: 6px;
+  }
+  .pagination li {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+  .pagination .ellipsis {
+    min-width: 18px;
+    padding: 0;
+  }
+}
+@media (max-width: 560px) {
+  /* 窄屏隐藏首页/末页快捷按钮：上一页/下一页与页码仍可完成全部导航 */
+  .pagination .pager-edge {
+    display: none;
+  }
+  .pagination li {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 7px;
+  }
+  .pagination .ellipsis {
+    min-width: 16px;
+    padding: 0;
+  }
+}
+@media (max-width: 360px) {
+  .pagination {
+    gap: 4px;
+  }
+  .pagination li {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+  }
+  .pagination .ellipsis {
+    min-width: 14px;
+    padding: 0;
+  }
+}
+
+/* 无目录文章：正文采用舒适的阅读宽度并居中，与带目录文章的正文栏宽保持接近 */
+.post--no-toc {
+  grid-template-columns: minmax(0, 860px);
+  justify-content: center;
+}
+.post--no-toc .toc {
+  display: none;
+}
+
+/* 标签总览页 */
+.tag-cloud--page {
+  gap: 12px;
+  margin: 10px 0 40px;
+}
+.tag-cloud--page a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 8px 15px;
+  border-radius: var(--radius-sm);
+}
+.tag-cloud--page a em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 作者页头部 */
+.author-hero__head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.author-hero__avatar {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.author-hero__head .page-hero__title {
+  margin-bottom: 6px;
+}
+
+/* 友链申请：结果提示与表单 */
+.link-apply__notice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 26px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  font-size: 13.5px;
+  color: var(--text-soft);
+}
+.link-apply__notice b {
+  color: var(--accent);
+  font-size: 14px;
+}
+/* 提交失败 / 未开放：退回中性底色，避免与成功态混淆 */
+.link-apply__notice.is-error,
+.link-apply__notice.is-disabled {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+.link-apply__notice.is-error b {
+  color: var(--text);
+}
+.link-apply__notice.is-disabled b {
+  color: var(--text-soft);
+}
+
+.link-apply__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 20px;
+  margin-top: 28px;
+}
+.link-apply__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.link-apply__form label > span:first-child {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.link-apply__form input[type="text"],
+.link-apply__form input[type="url"],
+.link-apply__form input[type="email"],
+.link-apply__form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  /* 不低于 16px，避免 iOS Safari 聚焦时自动放大页面 */
+  font-size: 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.link-apply__form input:focus,
+.link-apply__form textarea:focus {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.link-apply__form textarea {
+  resize: vertical;
+}
+.link-apply__full {
+  grid-column: 1 / -1;
+}
+.link-apply__captcha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.link-apply__captcha input {
+  flex: 1;
+}
+.link-apply__captcha img {
+  width: 118px;
+  height: 42px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+}
+.link-apply__actions {
+  grid-column: 1 / -1;
+}
+
+/* 错误页 */
+.error-page {
+  min-height: 54vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 0 90px;
+}
+.error-page__code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  color: var(--accent);
+}
+.error-page__title {
+  font-size: clamp(30px, 5vw, 48px);
+  margin: 14px 0 12px;
+}
+.error-page__sub {
+  color: var(--text-soft);
+  max-width: 620px;
+  margin: 0 0 26px;
+}
+.error-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .link-apply__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .author-hero__head {
+    align-items: flex-start;
+  }
+}

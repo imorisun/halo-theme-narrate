@@ -1,15 +1,15 @@
 <include src="layout.html">
   <template name="head">
     <title th:text="|${post.spec.title} · ${site.title}|">文章 · Narrate</title>
-    <link
-      rel="stylesheet"
-      th:if="${theme.config.post?.enable_highlight != false}"
-      th:href="@{/assets/vendor/highlight-github-dark.min.css}"
-    />
   </template>
 
   <section class="post-hero">
-    <span class="post-hero__glyph" th:text="${#strings.substring(post.spec.title, 0, 1)}">叙</span>
+    <span
+      class="post-hero__glyph"
+      aria-hidden="true"
+      th:text="${#strings.substring(post.spec.title, 0, 1)}"
+      >叙</span
+    >
     <div class="post-hero__inner container">
       <div class="post-hero__kicker">
         <!-- 多分类：逐一渲染并保留分类链接，分类间以间隔点分隔 -->
@@ -192,10 +192,4 @@
       </aside>
     </div>
   </div>
-
-  <script
-    defer
-    th:if="${theme.config.post?.enable_highlight != false}"
-    th:src="@{/assets/vendor/highlight.min.js}"
-  ></script>
 </include>

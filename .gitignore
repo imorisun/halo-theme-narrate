@@ -27,3 +27,10 @@ dist-ssr
 .gradle
 build
 templates
+
+# 本地 AI 工具 / skill 安装目录与产物（由 skills-lock.json + `pnpm skills:update` 还原）
+.agents
+.trae
+.claude
+.screenshots
+.trae-html-share-packages
