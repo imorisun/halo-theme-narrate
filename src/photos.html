@@ -85,25 +85,6 @@
             decoding="async"
           />
         </span>
-        <span class="gallery-card__body">
-          <span class="gallery-card__index" aria-hidden="true"></span>
-          <span class="gallery-card__text">
-            <span class="gallery-card__title" th:text="${photo.spec.displayName}">照片</span>
-            <span
-              class="gallery-card__desc"
-              th:if="${not #strings.isEmpty(photo.spec.description)}"
-              th:text="${photo.spec.description}"
-            ></span>
-            <span
-              class="gallery-card__tags"
-              th:if="${photo.spec.tags != null and not #lists.isEmpty(photo.spec.tags)}"
-            >
-              <span class="gallery-card__tag" th:each="tag : ${photo.spec.tags}" th:text="|#${tag}|"
-                >#标签</span
-              >
-            </span>
-          </span>
-        </span>
       </a>
     </div>
 

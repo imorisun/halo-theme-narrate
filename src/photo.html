@@ -10,7 +10,7 @@
     backUrl    — String，回到来源列表的 URL
     photoUrl   — PhotoUrlBuilder，详情 URL 构造器
     title      — String，页面标题
-  模板覆盖后评论仍走 Halo 评论组件（Photo 扩展）。
+  照片详情页不展示评论，保持以图片本身为核心的浏览体验。
 -->
 <include src="layout.html">
   <template name="head">
@@ -196,22 +196,8 @@
             loading="lazy"
             decoding="async"
           />
-          <span class="photo-neighbors__label" th:text="${neighbor.spec.displayName}">照片</span>
         </a>
       </div>
     </section>
-
-    <section class="comments" id="comments" th:if="${haloCommentEnabled}">
-      <div class="comments__head">
-        <div class="comments__head-text">
-          <span class="comments__no">Ⅲ</span>
-          <h2 class="comments__title" th:text="'评论'">评论</h2>
-          <span class="comments__en" th:text="'Comments'">Comments</span>
-        </div>
-        <span class="line"></span>
-      </div>
-      <halo:comment group="core.halo.run" kind="Photo" th:attr="name=${photo.metadata.name}" />
-    </section>
-    <div class="comments-disabled" th:if="${!haloCommentEnabled}">评论已关闭</div>
   </div>
 </include>
