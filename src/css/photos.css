@@ -31,14 +31,13 @@
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-.gallery-filter__item:hover {
+.gallery-filter__item:hover,
+.gallery-filter__item.is-active {
   color: var(--accent);
   border-color: var(--accent-line);
 }
 .gallery-filter__item.is-active {
-  color: var(--accent);
   background: var(--accent-soft);
-  border-color: var(--accent-line);
 }
 .gallery-filter__item.is-active em {
   color: var(--accent);
@@ -71,9 +70,7 @@
 .gallery-card__media {
   display: block;
   aspect-ratio: 4 / 3;
-  overflow: hidden;
   background: var(--surface-2);
-  border-radius: inherit;
 }
 .gallery-card__image {
   width: 100%;

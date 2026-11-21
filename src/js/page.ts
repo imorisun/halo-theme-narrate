@@ -10,6 +10,7 @@ import {
 } from "./moments";
 import { initClock, initCounters, initReveal, initRotatingWord } from "./motion";
 import { initNavActive } from "./navigation";
+import { initPhotoFilter } from "./photos";
 import { qs, replayContentScripts } from "./utils";
 
 /* ---------------- 页面级初始化 ---------------- */
@@ -28,6 +29,7 @@ export function initPage(replayScripts = false) {
   initToc();
   initLinkCards();
   initLinkFilter();
+  initPhotoFilter();
   initArchiveCounts();
   initLinkCaptcha();
   initMomentUpvote();

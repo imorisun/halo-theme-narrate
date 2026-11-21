@@ -4,10 +4,12 @@
   可用变量：
     groups   — List<PhotoGroupVo>，全部分组（含 status.photoCount）
     photos   — UrlContextListResult<PhotoVo>，当前页照片分页结果
-    group    — String|null，当前分组筛选（对应 URL 的 group 参数）
     photoUrl — PhotoUrlBuilder，列表 / 详情 URL 构造器
     title    — String，页面标题
   插件未安装时该模板不会被渲染。
+
+  注：plugin-photos 2.1.2 及以下不会向列表模板注入当前分组，
+  因此分组按钮的激活状态与分页链接的分组参数由 js/photos.ts 按地址栏补正。
 -->
 <include src="layout.html">
   <template name="head">
@@ -31,29 +33,18 @@
   </section>
 
   <div class="page-wrap container">
-    <!-- 分组筛选：链接与计数均由插件提供，分页时保留 group 上下文 -->
-    <nav
-      class="gallery-filter"
-      th:if="${groups != null and not #lists.isEmpty(groups)}"
-      aria-label="照片分组"
-    >
-      <a
-        class="gallery-filter__item"
-        th:classappend="${#strings.isEmpty(group)} ? 'is-active' : ''"
-        th:href="@{${photoUrl.list()}}"
-        th:attr="aria-current=${#strings.isEmpty(group) ? 'page' : null}"
-        >全部</a
-      >
+    <!-- 分组筛选：链接与计数由插件提供，当前分组由前端按地址栏参数标记 -->
+    <nav class="gallery-filter" th:if="${not #lists.isEmpty(groups)}" aria-label="照片分组">
+      <a class="gallery-filter__item" data-group="" th:href="@{${photoUrl.list()}}">全部</a>
       <a
         class="gallery-filter__item"
         th:each="photoGroup : ${groups}"
-        th:classappend="${group == photoGroup.metadata.name} ? 'is-active' : ''"
+        th:data-group="${photoGroup.metadata.name}"
         th:href="@{${photoUrl.list(photoGroup.metadata.name)}}"
-        th:attr="aria-current=${group == photoGroup.metadata.name ? 'page' : null}"
       >
         <span th:text="${photoGroup.spec.displayName}">分组</span>
         <em
-          th:if="${photoGroup.status != null and photoGroup.status.photoCount != null}"
+          th:if="${photoGroup.status?.photoCount != null}"
           th:text="${photoGroup.status.photoCount}"
           >0</em
         >
@@ -90,12 +81,10 @@
 
     <div class="ff-empty" th:if="${#lists.isEmpty(photos.items)}">
       <b>暂无照片</b>
-      <span th:text="${#strings.isEmpty(group) ? '还没有上传任何照片。' : '这个分组下还没有照片。'}"
-        >还没有上传任何照片。</span
-      >
+      <span>这里还没有照片。</span>
     </div>
 
-    <!-- 分页：插件使用查询参数分页，页码链接需保留 group 与 size -->
+    <!-- 分页：插件使用查询参数分页，页码链接的 group 参数由前端按地址栏补回 -->
     <nav
       class="page-navigator"
       th:if="${photos.totalPages > 1}"
