@@ -138,7 +138,10 @@
   </th:block>
 
   <section class="spotlight container" id="latest" th:if="${not #lists.isEmpty(posts.items)}">
-    <div class="spotlight__grid">
+    <div
+      class="spotlight__grid"
+      th:classappend="${#lists.size(posts.items) <= 1} ? ' spotlight__grid--single' : ''"
+    >
       <th:block th:each="post, iterStat : ${posts.items}" th:if="${iterStat.index == 0}">
         <th:block
           th:with="cover=${post.spec.cover},
@@ -149,6 +152,8 @@
               <img
                 th:if="${not #strings.isEmpty(cover)}"
                 th:src="${cover}"
+                th:srcset="|${thumbnail.gen(cover, 's')} 400w, ${thumbnail.gen(cover, 'm')} 800w, ${thumbnail.gen(cover, 'l')} 1200w, ${thumbnail.gen(cover, 'xl')} 1600w|"
+                sizes="(max-width: 1000px) 100vw, 680px"
                 th:alt="${post.spec.title}"
                 width="1600"
                 height="1000"
@@ -406,20 +411,20 @@
                     </svg>
                   </a>
                 </div>
-                <div class="cat-rows">
+                <div class="cat-guide-rows">
                   <a
-                    class="cat-row"
+                    class="cat-guide-row"
                     th:each="post : ${catPosts.items}"
                     th:href="@{${post.status.permalink}}"
                   >
                     <span
-                      class="cat-row__date"
+                      class="cat-guide-row__date"
                       th:text="${#temporals.format(post.spec.publishTime, 'MM.dd')}"
                       >01.01</span
                     >
-                    <div class="cat-row__body">
-                      <h3 class="cat-row__title" th:text="${post.spec.title}"></h3>
-                      <div class="cat-row__meta">
+                    <div class="cat-guide-row__body">
+                      <h3 class="cat-guide-row__title" th:text="${post.spec.title}"></h3>
+                      <div class="cat-guide-row__meta">
                         <span th:text="${post.owner?.displayName ?: site.title}"></span>
                         <span
                           th:if="${theme.config.post?.show_views != false}"
@@ -427,7 +432,7 @@
                         ></span>
                       </div>
                     </div>
-                    <span class="cat-row__go">
+                    <span class="cat-guide-row__go">
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"

@@ -64,11 +64,14 @@
         class="gallery-card reveal"
         th:each="photo : ${photos.items}"
         th:href="@{${photoUrl.detail(photo)}}"
+        th:with="photoSrc=${#strings.isEmpty(photo.spec.cover) ? photo.spec.url : photo.spec.cover}"
       >
         <span class="gallery-card__media">
           <img
             class="gallery-card__image"
-            th:src="${#strings.isEmpty(photo.spec.cover) ? photo.spec.url : photo.spec.cover}"
+            th:src="${photoSrc}"
+            th:srcset="|${thumbnail.gen(photoSrc, 's')} 400w, ${thumbnail.gen(photoSrc, 'm')} 800w, ${thumbnail.gen(photoSrc, 'l')} 1200w|"
+            sizes="(max-width: 560px) calc(50vw - 24px), 270px"
             th:alt="${photo.spec.displayName}"
             width="800"
             height="600"

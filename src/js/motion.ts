@@ -5,11 +5,22 @@ export function initScrollUi() {
   const progress = qs<HTMLElement>("#readProgress");
   const toTop = qs<HTMLButtonElement>("#toTop");
 
-  const onScroll = () => {
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
     const scrolled = window.scrollY;
     const height = document.documentElement.scrollHeight - window.innerHeight;
-    if (progress) progress.style.width = `${height > 0 ? (scrolled / height) * 100 : 0}%`;
+    if (progress) {
+      progress.style.transform = `scaleX(${height > 0 ? Math.min(scrolled / height, 1) : 0})`;
+    }
     if (toTop) toTop.classList.toggle("show", scrolled > 400);
+  };
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(update);
   };
 
   window.addEventListener("scroll", onScroll, { passive: true });

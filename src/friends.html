@@ -19,7 +19,7 @@
       <span th:text="|第 ${friends.page} / ${friends.totalPages} 页|">第 1 页</span>
     </div>
 
-    <div class="ff-list" th:if="${not #lists.isEmpty(friends.items)}">
+    <div class="ff-list" id="pager-region" th:if="${not #lists.isEmpty(friends.items)}">
       <div class="ff-item" th:each="friend : ${friends.items}">
         <a
           class="ff-item__site"

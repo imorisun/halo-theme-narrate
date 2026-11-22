@@ -16,7 +16,8 @@ export function initLinkCards() {
   const stats = qs<HTMLElement>(".link-stats");
   const grid = qs<HTMLElement>(".link-grid");
   if (stats && grid) {
-    const count = qsa("a.link-card", grid).length;
+    // 分类页的卡片是 div.link-card，友链页才是 a.link-card，统一按卡片元素统计
+    const count = qsa(".link-card", grid).length;
     const number = qs<HTMLElement>("b", stats);
     if (number) number.textContent = String(count);
   }

@@ -60,6 +60,8 @@
           <img
             th:if="${not #strings.isEmpty(cover)}"
             th:src="${cover}"
+            th:srcset="|${thumbnail.gen(cover, 's')} 400w, ${thumbnail.gen(cover, 'm')} 800w, ${thumbnail.gen(cover, 'l')} 1200w|"
+            sizes="(max-width: 560px) calc(100vw - 36px), (max-width: 860px) 112px, 138px"
             th:alt="${post.spec.title}"
             width="138"
             height="92"

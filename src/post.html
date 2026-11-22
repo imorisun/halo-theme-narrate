@@ -87,6 +87,15 @@
       th:classappend="${hasToc ? '' : 'post--no-toc'}"
     >
       <div class="post__main">
+        <!-- 平板与手机使用折叠目录，避免侧栏目录被隐藏后失去章节导航 -->
+        <details class="toc-mobile" id="tocMobile" th:if="${hasToc}">
+          <summary>
+            <span>目录</span>
+            <span class="toc-mobile__hint">CONTENTS</span>
+          </summary>
+          <ul class="toc__list" id="tocListMobile"></ul>
+        </details>
+
         <article class="post-content" th:utext="${post.content.content}">正文</article>
 
         <div class="post-tags" th:if="${not #lists.isEmpty(post.tags)}">

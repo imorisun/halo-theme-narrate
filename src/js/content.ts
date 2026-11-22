@@ -49,15 +49,17 @@ export function initReadTime() {
 /* ---------------- 文章目录 ---------------- */
 export function initToc() {
   const content = qs<HTMLElement>(".post-content");
-  const list = qs<HTMLUListElement>("#tocList");
+  const lists = qsa<HTMLUListElement>(".toc__list");
   const widget = qs<HTMLElement>("#tocWidget");
-  if (!content || !list || !widget) return;
+  const mobile = qs<HTMLDetailsElement>("#tocMobile");
+  if (!content || !lists.length) return;
 
   const headings = qsa<HTMLHeadingElement>("h2, h3", content);
   if (!headings.length) {
-    widget.hidden = true;
+    if (widget) widget.hidden = true;
+    if (mobile) mobile.hidden = true;
     // 没有实际目录时让正文收窄居中
-    widget.closest(".post")?.classList.add("post--no-toc");
+    (widget ?? mobile)?.closest(".post")?.classList.add("post--no-toc");
     return;
   }
 
@@ -68,28 +70,36 @@ export function initToc() {
     ) || 88;
 
   let serial = 0;
-  const links: HTMLAnchorElement[] = [];
+  const links: { element: HTMLAnchorElement; id: string }[] = [];
+  lists.forEach((list) => list.replaceChildren());
+
   headings.forEach((heading) => {
     if (!heading.id) {
       serial += 1;
       heading.id = `h-${serial}`;
     }
-    const item = document.createElement("li");
-    item.className = heading.tagName === "H3" ? "lvl-3" : "lvl-2";
-    const link = document.createElement("a");
-    link.href = `#${heading.id}`;
-    link.textContent = heading.textContent ?? "";
-    // 目录使用自定义滚动偏移，禁止 Swup 再次接管锚点跳转
-    link.setAttribute("data-no-swup", "");
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      const top = heading.getBoundingClientRect().top + window.scrollY - anchorOffset;
-      window.scrollTo({ top, behavior: prefersReducedMotion ? "auto" : "smooth" });
-      history.replaceState(null, "", `#${heading.id}`);
+    const id = heading.id;
+
+    // 桌面侧栏与移动端折叠目录共用同一份标题数据，分别生成列表项
+    lists.forEach((list) => {
+      const item = document.createElement("li");
+      item.className = heading.tagName === "H3" ? "lvl-3" : "lvl-2";
+      const link = document.createElement("a");
+      link.href = `#${id}`;
+      link.textContent = heading.textContent ?? "";
+      // 目录使用自定义滚动偏移，禁止 Swup 再次接管锚点跳转
+      link.setAttribute("data-no-swup", "");
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        mobile?.removeAttribute("open");
+        const top = heading.getBoundingClientRect().top + window.scrollY - anchorOffset;
+        window.scrollTo({ top, behavior: prefersReducedMotion ? "auto" : "smooth" });
+        history.replaceState(null, "", `#${id}`);
+      });
+      item.appendChild(link);
+      list.appendChild(item);
+      links.push({ element: link, id });
     });
-    item.appendChild(link);
-    list.appendChild(item);
-    links.push(link);
   });
 
   if (!("IntersectionObserver" in window)) return;
@@ -98,8 +108,9 @@ export function initToc() {
     (entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        links.forEach((link) => link.classList.remove("active"));
-        list.querySelector(`a[href="#${entry.target.id}"]`)?.classList.add("active");
+        links.forEach(({ element, id }) => {
+          element.classList.toggle("active", id === entry.target.id);
+        });
       });
     },
     { rootMargin: "-80px 0px -70% 0px", threshold: 0 },

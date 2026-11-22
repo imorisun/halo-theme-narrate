@@ -12,6 +12,10 @@
   gap: 26px;
   align-items: stretch;
 }
+/* 仅一篇文章时右侧榜单不渲染，主卡铺满整行 */
+.spotlight__grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
 .spotlight-main {
   position: relative;
   overflow: hidden;
