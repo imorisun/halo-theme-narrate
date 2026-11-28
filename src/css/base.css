@@ -330,6 +330,121 @@ body::after {
 .nav a.active {
   color: var(--accent);
 }
+/* 指向首页（或无链接）的菜单仅作分组标签：不可点击，也不出现悬停高亮 */
+.nav a.is-inert {
+  cursor: default;
+}
+.nav a.is-inert:hover {
+  color: var(--text-soft);
+  background: transparent;
+}
+
+/* 菜单列表：一级项横向排列，含子菜单的项在下方展开下拉面板 */
+.nav__list,
+.nav__submenu {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav__item {
+  position: relative;
+}
+.nav__link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* 含子菜单：箭头提示可展开，展开后翻转为指向标题 */
+.nav__item--has-children > .nav__link::after {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentcolor;
+  border-bottom: 1.5px solid currentcolor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+.nav__item--has-children:hover > .nav__link::after,
+.nav__item--has-children:focus-within > .nav__link::after {
+  transform: rotate(225deg);
+  margin-top: 2px;
+}
+.nav__submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  min-width: 176px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
+    transform 0.18s ease;
+}
+/* 悬停展开；focus-within 保证键盘 Tab 也能进入子菜单 */
+.nav__item--has-children:hover > .nav__submenu,
+.nav__item--has-children:focus-within > .nav__submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.nav__submenu .nav__sublink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+}
+.nav__submenu .nav__sublink:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+/* 二级及以下含子项的父项：右侧箭头，表示继续向右展开下一级 */
+.nav__item--has-children > .nav__sublink::after {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  margin-left: auto;
+  border-right: 1.5px solid currentcolor;
+  border-bottom: 1.5px solid currentcolor;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+/* 多级菜单：相对父项向右飞出，与上一层面板顶边对齐，支持任意层级 */
+.nav__submenu .nav__submenu {
+  top: -7px;
+  left: 100%;
+}
+/* 子菜单展开按钮：页头仅移动端显示，页脚始终显示，桌面页头仍用悬停展开 */
+.menu-expand {
+  display: none;
+  place-items: center;
+  color: var(--text-muted);
+}
+.menu-expand svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+li.is-open > .menu-expand svg {
+  transform: rotate(180deg);
+}
 
 .header-actions {
   margin-left: auto;

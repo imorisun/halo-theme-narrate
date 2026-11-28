@@ -77,15 +77,45 @@
         </a>
 
         <nav class="nav" id="nav" aria-label="主导航">
-          <th:block th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}">
-            <a
+          <!-- 菜单项为树结构：子菜单通过 MenuItemVo.children 获取，不能读取已弃用的 spec.children -->
+          <ul class="nav__list" th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}">
+            <li
+              class="nav__item"
               th:each="item : ${menu.menuItems}"
-              th:href="${item.status.href}"
-              th:text="${item.status.displayName}"
-              th:target="${item.spec.target?.value ?: '_self'}"
-              th:classappend="${(item.status.href == '/' and _templateId == 'index') ? 'active' : ''}"
-            ></a>
-          </th:block>
+              th:with="inert=${#strings.isEmpty(item.status.href) or item.status.href == '/'}"
+              th:classappend="${not #lists.isEmpty(item.children)} ? 'nav__item--has-children' : ''"
+            >
+              <!-- 指向首页（或无链接）的菜单仅作分组标签：不加 href、不可点击、不参与激活态 -->
+              <a
+                class="nav__link"
+                th:attr="href=${inert ? null : item.status.href},aria-disabled=${inert} ? 'true' : null"
+                th:target="${item.spec.target?.value ?: '_self'}"
+                th:classappend="${inert} ? 'is-inert' : ''"
+              >
+                <span class="nav__text" th:text="${item.status.displayName}"></span>
+              </a>
+              <button
+                th:if="${not #lists.isEmpty(item.children)}"
+                class="menu-expand"
+                type="button"
+                aria-expanded="false"
+                th:attr="aria-label=${item.status.displayName + ' 子菜单'}"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <th:block th:replace="~{::subTree(items=${item.children})}"></th:block>
+            </li>
+          </ul>
           <!-- 固定文案：未配置 Halo 菜单时的默认导航 -->
           <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
             <a th:href="@{/}" th:text="'首页'"></a>
@@ -189,12 +219,38 @@
 
         <div class="footer-col">
           <h3 class="footer-col__title" th:text="'导航'">导航</h3>
-          <ul class="footer-links">
+          <ul class="footer-links footer-links--nav">
             <li
               th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}"
               th:each="item : ${menu.menuItems}"
+              th:with="inert=${#strings.isEmpty(item.status.href) or item.status.href == '/'}"
             >
-              <a th:href="${item.status.href}" th:text="${item.status.displayName}"></a>
+              <a
+                th:attr="href=${inert ? null : item.status.href},aria-disabled=${inert} ? 'true' : null"
+                th:classappend="${inert} ? 'is-inert' : ''"
+                th:text="${item.status.displayName}"
+              ></a>
+              <!-- 菜单较多时折叠子菜单，保持页脚紧凑 -->
+              <button
+                th:if="${not #lists.isEmpty(item.children)}"
+                class="menu-expand menu-expand--footer"
+                type="button"
+                aria-expanded="false"
+                th:attr="aria-label=${item.status.displayName + ' 子菜单'}"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <th:block th:replace="~{::footerTree(items=${item.children})}"></th:block>
             </li>
             <!-- 固定文案：默认页脚导航 -->
             <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
@@ -271,6 +327,88 @@
         <path d="m6 14 6-6 6 6" />
       </svg>
     </button>
+
+    <!--
+      菜单递归片段：按 Halo 菜单项的树结构逐层渲染，支持任意层级子菜单。
+      · 定义处包在 th:if="${false}" 中，不在页面当前位置输出；
+      · 仅在 th:replace 引用时渲染，片段自身的 th:if 保证空子集不产生空列表；
+      · 片段定义随 layout 内联到各页面模板，因此用 ~{::片段名} 引用当前模板即可递归。
+    -->
+    <th:block th:if="${false}">
+      <ul class="nav__submenu" th:fragment="subTree(items)" th:if="${not #lists.isEmpty(items)}">
+        <li
+          class="nav__item"
+          th:each="item : ${items}"
+          th:with="inert=${#strings.isEmpty(item.status.href) or item.status.href == '/'}"
+          th:classappend="${not #lists.isEmpty(item.children)} ? 'nav__item--has-children' : ''"
+        >
+          <a
+            class="nav__sublink"
+            th:attr="href=${inert ? null : item.status.href},aria-disabled=${inert} ? 'true' : null"
+            th:text="${item.status.displayName}"
+            th:target="${item.spec.target?.value ?: '_self'}"
+            th:classappend="${inert} ? 'is-inert' : ''"
+          ></a>
+          <button
+            th:if="${not #lists.isEmpty(item.children)}"
+            class="menu-expand"
+            type="button"
+            aria-expanded="false"
+            th:attr="aria-label=${item.status.displayName + ' 子菜单'}"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <th:block th:replace="~{::subTree(items=${item.children})}"></th:block>
+        </li>
+      </ul>
+
+      <ul
+        class="footer-sublinks"
+        th:fragment="footerTree(items)"
+        th:if="${not #lists.isEmpty(items)}"
+      >
+        <li
+          th:each="item : ${items}"
+          th:with="inert=${#strings.isEmpty(item.status.href) or item.status.href == '/'}"
+        >
+          <a
+            th:attr="href=${inert ? null : item.status.href},aria-disabled=${inert} ? 'true' : null"
+            th:classappend="${inert} ? 'is-inert' : ''"
+            th:text="${item.status.displayName}"
+          ></a>
+          <button
+            th:if="${not #lists.isEmpty(item.children)}"
+            class="menu-expand menu-expand--footer"
+            type="button"
+            aria-expanded="false"
+            th:attr="aria-label=${item.status.displayName + ' 子菜单'}"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <th:block th:replace="~{::footerTree(items=${item.children})}"></th:block>
+        </li>
+      </ul>
+    </th:block>
 
     <halo:footer />
   </body>

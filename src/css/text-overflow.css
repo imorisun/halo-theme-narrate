@@ -49,15 +49,16 @@
   max-width: calc(100% - 128px);
 }
 
-.nav a {
-  display: inline-block;
+/* 菜单文本单行省略：箭头由伪元素绘制，因此截断放在文字容器上 */
+.nav__text {
+  display: block;
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 /* 移动端下拉菜单是纵向排列，取消单行限制，避免菜单名被 180px 截断 */
-.nav.nav--open a {
+.nav.nav--open .nav__text {
   max-width: 100%;
   white-space: normal;
   overflow: visible;

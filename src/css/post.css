@@ -816,6 +816,14 @@
   color: var(--accent);
   padding-left: 4px;
 }
+/* 指向首页（或无链接）的页脚菜单仅作分组标签：不可点击，也不出现悬停位移 */
+.footer-links a.is-inert {
+  cursor: default;
+}
+.footer-links a.is-inert:hover {
+  color: var(--text-soft);
+  padding-left: 0;
+}
 /* 友链文本：限制最大宽度（约 20 个汉字），超长以省略号截断；完整标题由 title 属性提供 */
 .footer-links--friends li {
   min-width: 0;
@@ -826,6 +834,62 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* 页脚导航：单行排布，含子菜单的项默认收起，点击箭头展开，避免菜单过多把页脚拉长 */
+.footer-links--nav {
+  /* 导航列本身较窄，取消两列网格，避免压缩后文字换行、箭头错位 */
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+.footer-links--nav > li,
+.footer-sublinks > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+}
+.footer-links--nav > li > a,
+.footer-sublinks > li > a {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.menu-expand--footer {
+  display: grid;
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+.menu-expand--footer svg {
+  width: 14px;
+  height: 14px;
+}
+/* 页脚子菜单：默认隐藏；展开后整体缩进并加竖线，与一级菜单形成明确层级 */
+.footer-sublinks {
+  flex-basis: 100%;
+  list-style: none;
+  margin: 4px 0 2px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--border);
+  display: none;
+  gap: 6px;
+}
+li.is-open > .footer-sublinks {
+  display: grid;
+}
+.footer-sublinks a {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+/* 多级页脚子菜单：每深一层继续缩进，竖线随之叠加 */
+.footer-sublinks .footer-sublinks {
+  padding-left: 10px;
+}
+/* 展开中的父项用强调色标示，指明下方缩进子项归属于它 */
+.footer-links--nav li.is-open > a,
+.footer-sublinks li.is-open > a {
+  color: var(--accent);
 }
 
 /* 底部行：版权声明、驱动信息与备案链接统一由同一组件渲染 */

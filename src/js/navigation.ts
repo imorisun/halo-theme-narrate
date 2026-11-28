@@ -1,7 +1,26 @@
 import { qs, qsa } from "./utils";
 
+/* ---------------- 子菜单展开 / 收起 ---------------- */
+/* 页头移动端与页脚共用：点击箭头切换当前菜单项的子菜单，
+   页头桌面端仍以悬停 / 键盘聚焦展开，按钮在其中隐藏 */
+function initMenuExpand() {
+  qsa<HTMLButtonElement>(".menu-expand").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      // 按钮只负责展开，不触发链接跳转与外层收起逻辑
+      event.preventDefault();
+      event.stopPropagation();
+      const item = btn.closest("li");
+      if (!item) return;
+      const open = item.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", String(open));
+    });
+  });
+}
+
 /* ---------------- 移动端菜单 ---------------- */
 export function initNavigation() {
+  initMenuExpand();
+
   const toggle = qs<HTMLButtonElement>("#navToggle");
   const nav = qs<HTMLElement>("#nav");
   if (!toggle || !nav) return;
@@ -9,6 +28,11 @@ export function initNavigation() {
   const close = () => {
     nav.classList.remove("nav--open");
     toggle.setAttribute("aria-expanded", "false");
+    // 收起菜单时重置已展开的子菜单，下次打开保持一致的初始状态
+    qsa<HTMLElement>(".is-open", nav).forEach((item) => item.classList.remove("is-open"));
+    qsa<HTMLElement>(".menu-expand", nav).forEach((btn) =>
+      btn.setAttribute("aria-expanded", "false"),
+    );
   };
 
   toggle.addEventListener("click", () => {
@@ -16,7 +40,8 @@ export function initNavigation() {
     toggle.setAttribute("aria-expanded", String(open));
   });
   nav.addEventListener("click", (event) => {
-    if ((event.target as HTMLElement).closest("a")) close();
+    // 仅真正可跳转的链接才收起菜单；指向首页的分组标签不响应
+    if ((event.target as HTMLElement).closest("a[href]")) close();
   });
   // Esc 关闭已展开的菜单
   document.addEventListener("keydown", (event) => {

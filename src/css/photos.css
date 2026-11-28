@@ -451,13 +451,66 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    padding: 8px 16px 16px;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow);
+    /* 菜单项过多时面板限制在视口内滚动，避免底部菜单被裁掉且无法触达 */
+    max-height: calc(100vh - var(--header-h));
+    max-height: calc(100dvh - var(--header-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .nav.nav--open a {
     padding: 12px 14px;
+  }
+  /* 移动端：一级项纵向排列，子菜单不再浮动，直接在父项下缩进展开 */
+  .nav.nav--open .nav__list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .nav.nav--open .nav__submenu {
+    position: static;
+    min-width: 0;
+    margin: 0 0 4px 14px;
+    padding: 0 0 0 10px;
+    background: none;
+    border: 0;
+    border-left: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+  .nav.nav--open .nav__submenu .nav__sublink {
+    padding: 10px 12px;
+  }
+  /* 移动端改为点击箭头展开：链接上的箭头由独立按钮替代 */
+  .nav.nav--open .nav__item--has-children > .nav__link::after,
+  .nav.nav--open .nav__item--has-children > .nav__sublink::after {
+    display: none;
+  }
+  .nav.nav--open .menu-expand {
+    display: grid;
+    position: absolute;
+    top: 5px;
+    right: 4px;
+    width: 40px;
+    height: 40px;
+  }
+  /* 长菜单名单行展示，避免与右侧箭头按钮重叠 */
+  .nav.nav--open .nav__item--has-children > .nav__link,
+  .nav.nav--open .nav__item--has-children > .nav__sublink {
+    padding-right: 46px;
+  }
+  /* 子菜单默认收起，点击箭头后逐级展开，避免菜单过多时面板无限拉长 */
+  .nav.nav--open .nav__submenu {
+    display: none;
+  }
+  .nav.nav--open .nav__item.is-open > .nav__submenu {
+    display: block;
   }
   .nav-toggle {
     display: grid;
