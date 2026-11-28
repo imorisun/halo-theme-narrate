@@ -1,0 +1,369 @@
+/* =========================================================
+   轻言（plugin-hitokoto-hub）— /hitokoto 句集页
+   ========================================================= */
+.hito-page {
+  padding-bottom: 64px;
+}
+
+/* 分类筛选：沿用主题胶囊按钮语言 */
+.hito-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 28px 0 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.hito-cats {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.hito-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.hito-chip em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hito-chip:hover,
+.hito-chip.is-active {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.hito-chip.is-active {
+  background: var(--accent-soft);
+}
+.hito-chip.is-active em {
+  color: var(--accent);
+}
+
+/* 句集：首句占满整行作为主展示，其余为等宽卡片 */
+.hito-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 18px;
+  transition: opacity 0.2s ease;
+}
+.hito-wall.is-loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.hito-wall > .ff-empty {
+  grid-column: 1 / -1;
+}
+
+/* 主句：大字号衬线引言，保留纸感与留白 */
+.hito-stage {
+  position: relative;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 40px 42px 28px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.hito-stage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 42px;
+  width: 46px;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.55;
+}
+.hito-stage__mark {
+  position: absolute;
+  top: 2px;
+  left: 30px;
+  font-family: var(--font-serif);
+  font-size: 104px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.12;
+  pointer-events: none;
+}
+.hito-stage__quote {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 2.6vw, 27px);
+  line-height: 1.78;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  text-wrap: pretty;
+}
+/* 换一句：新句子淡入，避免整块内容突兀替换 */
+.hito-stage.is-swapping .hito-stage__quote {
+  animation: hito-quote-in 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes hito-quote-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hito-stage__meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.hito-stage__author {
+  color: var(--text-soft);
+}
+.hito-stage__sep {
+  opacity: 0.7;
+}
+.hito-stage__src {
+  color: var(--text-soft);
+  transition: color 0.2s ease;
+}
+.hito-stage__src:hover {
+  color: var(--accent);
+}
+/* 无跳转链接时仅作来源标注，不作为可点击元素 */
+.hito-stage__src.is-plain {
+  color: var(--text-muted);
+  cursor: default;
+}
+.hito-stage__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+}
+.hito-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  color: var(--text-soft);
+  text-decoration: none;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.hito-act:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--surface);
+}
+.hito-act svg {
+  width: 14px;
+  height: 14px;
+  /* 图标不参与命中，保证点击目标始终是按钮/链接本身 */
+  pointer-events: none;
+}
+.hito-act--like {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.hito-act--like.is-liked {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.hito-act--like.is-liked svg {
+  fill: currentColor;
+}
+/* 分享直达角标 */
+.hito-stage__flag {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+}
+
+/* 句子卡片 */
+.hito-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px 20px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.hito-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-line);
+  box-shadow: var(--shadow);
+}
+.hito-card__text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+.hito-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.hito-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.hito-card__meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hito-card__like {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 5px;
+  padding: 2px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.hito-card__like svg {
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+}
+.hito-card__like:hover,
+.hito-card__like.is-liked {
+  color: var(--accent);
+}
+.hito-card__like.is-liked svg {
+  fill: currentColor;
+}
+.hito-card__jump {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .hito-page {
+    padding-bottom: 44px;
+  }
+  .hito-toolbar {
+    margin-top: 22px;
+    padding-bottom: 14px;
+  }
+  .hito-cats {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .hito-cats::-webkit-scrollbar {
+    display: none;
+  }
+  .hito-chip {
+    flex: none;
+  }
+  .hito-wall {
+    gap: 14px;
+  }
+  .hito-stage {
+    padding: 30px 22px 22px;
+  }
+  .hito-stage::before {
+    left: 22px;
+  }
+  .hito-stage__mark {
+    left: 12px;
+    font-size: 82px;
+  }
+  .hito-stage__quote {
+    font-size: 19px;
+    line-height: 1.8;
+  }
+  .hito-stage__flag {
+    top: 16px;
+    right: 16px;
+  }
+  .hito-stage__actions {
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+  .hito-card {
+    padding: 17px 16px 14px;
+  }
+  .hito-card__text {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hito-stage.is-swapping .hito-stage__quote {
+    animation: none;
+  }
+  .hito-card,
+  .hito-chip,
+  .hito-act,
+  .hito-wall {
+    transition: none;
+  }
+  .hito-card:hover {
+    transform: none;
+  }
+}

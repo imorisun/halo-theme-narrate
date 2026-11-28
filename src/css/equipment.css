@@ -1,0 +1,204 @@
+/* =========================================================
+   装备（plugin-equipment）— /equipments 陈列页
+   ========================================================= */
+.equip-page {
+  padding-bottom: 64px;
+}
+
+/* 分组筛选：沿用图库 / 豆瓣的胶囊语言，激活态由服务端按查询串标记 */
+.equip-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0 4px;
+}
+.equip-filter__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.equip-filter__item em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.equip-filter__item:hover,
+.equip-filter__item.is-active {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.equip-filter__item.is-active {
+  background: var(--accent-soft);
+}
+.equip-filter__item.is-active em {
+  color: var(--accent);
+}
+
+/* 装备网格：封面统一 4:3，标题与描述各限两行保持卡片等高 */
+.equip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 18px;
+  margin: 0 0 20px;
+}
+.equip-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    transform 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+/* 仅带外链的卡片上浮，避免无链接卡片被误认为可点击 */
+.equip-card:has(.equip-card__media[href]):hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-line);
+  box-shadow: var(--shadow);
+}
+.equip-card__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.equip-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.equip-card:has(.equip-card__media[href]):hover .equip-card__image {
+  transform: scale(1.04);
+}
+/* 无封面：用名称首字占位，避免破图 */
+.equip-card__noimg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-sans);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.equip-card__arrow {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.equip-card:hover .equip-card__arrow {
+  opacity: 1;
+  transform: none;
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.equip-card__arrow svg {
+  width: 14px;
+  height: 14px;
+}
+.equip-card__body {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+.equip-card__spec {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.equip-card__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.equip-card__desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-soft);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.equip-empty__reset {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+/* 响应式：网格逐级收窄，窄屏固定两列 */
+@media (max-width: 860px) {
+  .equip-grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+  }
+}
+@media (max-width: 560px) {
+  .equip-page {
+    padding-bottom: 44px;
+  }
+  .equip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .equip-card__body {
+    padding: 12px 13px 14px;
+  }
+  .equip-card__title {
+    font-size: 14px;
+  }
+  .equip-card__desc {
+    -webkit-line-clamp: 1;
+  }
+  .equip-card__arrow {
+    opacity: 1;
+    transform: none;
+  }
+}

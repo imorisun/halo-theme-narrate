@@ -1,0 +1,265 @@
+/* =========================================================
+   豆瓣（plugin-douban）— /douban 记录页
+   ========================================================= */
+.douban-page {
+  padding-bottom: 64px;
+}
+
+/* 筛选面板：类型 / 状态 / 种类，沿用主题的胶囊按钮语言 */
+.douban-filter {
+  display: grid;
+  gap: 14px;
+  margin: 28px 0 0;
+  padding: 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.douban-filter__row {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.douban-filter__row + .douban-filter__row {
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+.douban-filter__label {
+  flex: 0 0 76px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.douban-filter__label small {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  opacity: 0.7;
+}
+.douban-filter__items {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.douban-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.douban-chip em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.douban-chip:hover,
+.douban-chip.is-active {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.douban-chip.is-active {
+  background: var(--accent-soft);
+}
+.douban-chip.is-active em {
+  color: var(--accent);
+}
+
+/* 海报网格：固定 2:3 画幅，窄屏自动降为两列 */
+.douban-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 26px 18px;
+  margin: 26px 0 4px;
+}
+.douban-card {
+  min-width: 0;
+}
+.douban-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+.douban-card:hover .douban-card__link {
+  transform: translateY(-4px);
+}
+.douban-card__poster {
+  position: relative;
+  display: block;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.douban-card:hover .douban-card__poster {
+  border-color: var(--accent-line);
+  box-shadow: var(--shadow);
+}
+.douban-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.douban-card:hover .douban-card__image {
+  transform: scale(1.035);
+}
+/* 无封面：用标题文字占位，避免出现破图 */
+.douban-card__noimg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--text-muted);
+}
+/* 豆瓣评分角标：强调色实底，深浅色主题均保持对比度 */
+.douban-card__score {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+/* 想看 / 在看标记：仅非「看过」状态展示 */
+.douban-card__status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 9px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.douban-card__body {
+  display: grid;
+  gap: 5px;
+  padding: 11px 2px 0;
+}
+.douban-card__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  transition: color 0.2s ease;
+}
+.douban-card:hover .douban-card__title {
+  color: var(--accent);
+}
+.douban-card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.douban-card__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: 0.6;
+}
+.douban-card__mine {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent);
+}
+.douban-card__remark {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-soft);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.douban-empty__reset {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+/* 响应式：标签独占一行，网格逐级收窄 */
+@media (max-width: 860px) {
+  .douban-filter__label {
+    flex-basis: 100%;
+    padding-top: 0;
+  }
+  .douban-grid {
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 22px 14px;
+  }
+}
+@media (max-width: 560px) {
+  .douban-page {
+    padding-bottom: 44px;
+  }
+  .douban-filter {
+    padding: 16px;
+    border-radius: var(--radius-sm);
+  }
+  .douban-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  .douban-card__body {
+    padding-top: 9px;
+  }
+  .douban-card__title {
+    font-size: 13.5px;
+  }
+  .douban-card__remark {
+    -webkit-line-clamp: 1;
+  }
+}

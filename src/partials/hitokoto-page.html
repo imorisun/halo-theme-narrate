@@ -1,0 +1,215 @@
+<!--
+  轻言句集页正文（plugin-hitokoto-hub 的 /hitokoto 路由，模板名 hitokoto / hitokoto-glass）
+
+  可用模型变量（与插件内置模板保持一致，仅使用其中与展示相关的部分）：
+    sharedSentence — List<SentenceVo>，分享直达（?sentence=xxx）时命中的句子，未命中为空
+    shareView      — Boolean，是否处于分享直达视图
+    hitokotoFinder — 插件 Finder：randomSentences(limit, categoryName) / listCategories()
+    SentenceVo     — name / author / content / source / likeCount / jumpUrl
+    CategoryVo     — name / displayName / description / sentenceCount
+
+  说明：
+    · 页面服务端渲染首句与句子卡片流，分类切换、换一句、点赞、分享由 js/hitokoto.ts 增强；
+    · 「全部」沿用插件设置中的默认分类（随机接口未传 categoryName 时的行为）；
+    · 首句在非分享视图下取卡片流第一条，避免重复请求与同一句重复出现。
+-->
+<section class="page-hero">
+  <span class="page-hero__glyph" aria-hidden="true">言</span>
+  <div class="container">
+    <div class="page-hero__kicker">HITOKOTO · 轻言</div>
+    <h1 class="page-hero__title">轻言</h1>
+    <p class="page-hero__sub">
+      轻拾人间辞藻，言说万千心绪。诗词、台词与随想，都在这里化作一句可以带走的片刻。
+    </p>
+  </div>
+</section>
+
+<div
+  class="page-wrap container hito-page"
+  data-hito-page
+  th:attr="data-share-view=${shareView == true}"
+>
+  <th:block
+    th:with="
+      featured=${sharedSentence != null and not #lists.isEmpty(sharedSentence) ? sharedSentence[0] : null},
+      categories=${hitokotoFinder.listCategories()},
+      wall=${hitokotoFinder.randomSentences(13, null)}"
+  >
+    <!-- 分类筛选：仅列出已有句子的分类，计数由插件实时统计 -->
+    <div class="hito-toolbar">
+      <nav class="hito-cats" data-hito-cats aria-label="句子分类">
+        <button class="hito-chip is-active" type="button" data-hito-cat="" aria-pressed="true">
+          全部
+        </button>
+        <button
+          class="hito-chip"
+          type="button"
+          th:each="category : ${categories}"
+          th:attr="data-hito-cat=${category.name},title=${#strings.isEmpty(category.description) ? null : category.description}"
+          aria-pressed="false"
+        >
+          <span th:text="${category.displayName}">分类</span>
+          <em th:text="${category.sentenceCount}">0</em>
+        </button>
+      </nav>
+    </div>
+
+    <div class="hito-wall" data-hito-wall>
+      <!-- 分享直达：被分享的句子固定在首屏，其余随机句子作为卡片流 -->
+      <th:block th:if="${featured != null}">
+        <th:block th:replace="~{::stage(s=${featured})}"></th:block>
+      </th:block>
+
+      <th:block th:each="s, iterStat : ${wall}">
+        <th:block th:if="${featured == null and iterStat.first}">
+          <th:block th:replace="~{::stage(s=${s})}"></th:block>
+        </th:block>
+        <!-- 非分享视图跳过首条（已作为主句），分享视图跳过与被分享句子重复的条目 -->
+        <th:block th:if="${featured != null ? s.name != featured.name : !iterStat.first}">
+          <th:block th:replace="~{::card(s=${s})}"></th:block>
+        </th:block>
+      </th:block>
+    </div>
+  </th:block>
+</div>
+
+<!--
+  片段定义区：此处包在 th:if="${false}" 中不直接输出，
+  仅在 th:replace 引用时渲染；js/hitokoto.ts 重建卡片时保持与下列结构一致。
+-->
+<th:block th:if="${false}">
+  <figure
+    class="hito-stage reveal"
+    th:fragment="stage(s)"
+    data-hito-stage
+    th:attr="data-name=${s.name},data-jump-url=${s.jumpUrl}"
+  >
+    <span class="hito-stage__mark" aria-hidden="true">“</span>
+    <span class="hito-stage__flag" th:if="${shareView == true}">分享的句子</span>
+    <blockquote class="hito-stage__quote" data-hito-quote th:text="${s.content}">
+      句子内容
+    </blockquote>
+    <figcaption class="hito-stage__meta">
+      <span
+        class="hito-stage__author"
+        data-hito-author
+        th:text="${#strings.isEmpty(s.author) ? '佚名' : s.author}"
+        >佚名</span
+      >
+      <!-- 来源与作者以「作者 · 《来源》」排版；无来源时只保留作者 -->
+      <th:block th:if="${not #strings.isEmpty(s.source)}">
+        <span class="hito-stage__sep" aria-hidden="true">·</span>
+        <a
+          class="hito-stage__src"
+          data-hito-source
+          th:classappend="${s.jumpUrl == null} ? 'is-plain' : ''"
+          th:attr="href=${s.jumpUrl},target=${s.jumpUrl != null ? '_blank' : null},rel=${s.jumpUrl != null ? 'noopener noreferrer' : null}"
+          th:text="|《${s.source}》|"
+          >《来源》</a
+        >
+      </th:block>
+    </figcaption>
+    <div class="hito-stage__actions">
+      <button class="hito-act" type="button" data-hito-refresh th:if="${shareView != true}">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M20 11a8 8 0 1 0-2.3 6.2" />
+          <path d="M20 5v6h-6" />
+        </svg>
+        换一句
+      </button>
+      <a
+        class="hito-act hito-act--like"
+        data-hito-like
+        data-no-swup
+        role="button"
+        th:href="@{/apis/public.api.hitokotohub.puresky.top/v1alpha1/sentence/like(name=${s.name},action='like')}"
+        th:attr="data-name=${s.name}"
+        aria-pressed="false"
+        aria-label="点赞"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 20.6 4.7 13.3a4.8 4.8 0 0 1 6.8-6.8l.5.5.5-.5a4.8 4.8 0 0 1 6.8 6.8Z" />
+        </svg>
+        <span data-hito-like-count th:text="${s.likeCount}">0</span>
+      </a>
+      <a
+        class="hito-act"
+        data-hito-copy
+        data-no-swup
+        role="button"
+        th:href="@{/hitokoto(sentence=${s.name})}"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="9" y="9" width="11" height="11" rx="2" />
+          <path d="M5 15V5a2 2 0 0 1 2-2h8" />
+        </svg>
+        分享
+      </a>
+    </div>
+  </figure>
+
+  <article class="hito-card" th:fragment="card(s)" data-hito-card th:attr="data-name=${s.name}">
+    <p class="hito-card__text" th:text="${s.content}">句子内容</p>
+    <div class="hito-card__foot">
+      <span class="hito-card__meta">
+        <span th:text="${#strings.isEmpty(s.author) ? '佚名' : s.author}">佚名</span>
+        <span th:if="${not #strings.isEmpty(s.source)}" th:text="|《${s.source}》|">《来源》</span>
+      </span>
+      <a
+        class="hito-card__like"
+        data-hito-like
+        data-no-swup
+        role="button"
+        th:href="@{/apis/public.api.hitokotohub.puresky.top/v1alpha1/sentence/like(name=${s.name},action='like')}"
+        th:attr="data-name=${s.name}"
+        aria-pressed="false"
+        aria-label="点赞"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 20.6 4.7 13.3a4.8 4.8 0 0 1 6.8-6.8l.5.5.5-.5a4.8 4.8 0 0 1 6.8 6.8Z" />
+        </svg>
+        <span data-hito-like-count th:text="${s.likeCount}">0</span>
+      </a>
+    </div>
+    <a
+      class="hito-card__jump"
+      th:if="${not #strings.isEmpty(s.jumpUrl)}"
+      th:href="${s.jumpUrl}"
+      target="_blank"
+      rel="noopener noreferrer"
+      >阅读原文 <span aria-hidden="true">→</span></a
+    >
+  </article>
+</th:block>

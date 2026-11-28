@@ -1,4 +1,5 @@
 import { initReadTime, initRelativeTimes, initToc } from "./content";
+import { initHitokoto } from "./hitokoto";
 import { initContentImages } from "./lightbox";
 import { initArchiveCounts, initLinkCaptcha, initLinkCards, initLinkFilter } from "./links";
 import {
@@ -30,6 +31,7 @@ export function initPage(replayScripts = false) {
   initLinkCards();
   initLinkFilter();
   initPhotoFilter();
+  initHitokoto();
   initArchiveCounts();
   initLinkCaptcha();
   initMomentUpvote();

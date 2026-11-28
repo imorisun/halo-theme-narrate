@@ -1,0 +1,13 @@
+<!--
+  轻言句集页（plugin-hitokoto-hub 的 /hitokoto 路由，模板名 hitokoto-glass）
+
+  插件在「模板风格」选择液态玻璃时渲染该模板；主题与经典模板共用同一套主题化页面，
+  避免与主题页头页脚、配色体系割裂。正文见 partials/hitokoto-page.html。
+-->
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|轻言 · ${site.title}|">轻言 · Narrate</title>
+  </template>
+
+  <include src="hitokoto-page.html" />
+</include>

@@ -1,0 +1,318 @@
+<!--
+  豆瓣记录页（plugin-douban 的 /douban 路由，模板名 douban.html）
+
+  可用变量：
+    title  — String，插件「基本设置」中的标题（默认「豆瓣记录」）
+    douban — UrlContextListResult<DoubanMovieData>，当前筛选的分页结果
+    genres — List<DoubanGenresVo>，当前类型下的种类（name / doubanCount）
+    types  — List<DoubanTypeVo>，全部类型（name / key / doubanCount）
+
+  路由参数（均为可选）：type、status（缺省为 done）、dataType、genre；
+  分页为路径式 /douban/page/{page}，筛选条件通过查询串保留。
+  插件未安装时该模板不会被渲染。
+-->
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${#strings.isEmpty(title) ? '豆瓣记录' : title} · ${site.title}|">
+      豆瓣记录 · Narrate
+    </title>
+  </template>
+
+  <section class="page-hero">
+    <span
+      class="page-hero__glyph"
+      aria-hidden="true"
+      th:text="${#strings.isEmpty(title) ? '豆' : #strings.substring(title, 0, 1)}"
+      >豆</span
+    >
+    <div class="container">
+      <div class="page-hero__kicker">DOUBAN · 豆瓣</div>
+      <h1 class="page-hero__title" th:text="${#strings.isEmpty(title) ? '豆瓣记录' : title}">
+        豆瓣记录
+      </h1>
+      <p class="page-hero__sub">
+        从豆瓣同步的电影、图书、音乐与游戏收藏。看过的、在看的、想看的，都按标记时间陈列在这里。
+      </p>
+    </div>
+  </section>
+
+  <div
+    class="page-wrap container douban-page"
+    th:with="
+      currentType=${param.type != null and not #lists.isEmpty(param.type) and not #strings.isEmpty(param.type[0]) ? param.type[0] : null},
+      currentStatus=${param.status != null and not #lists.isEmpty(param.status) and not #strings.isEmpty(param.status[0]) ? param.status[0] : 'done'},
+      currentGenre=${param.genre != null and not #lists.isEmpty(param.genre) and not #strings.isEmpty(param.genre[0]) ? param.genre[0] : null},
+      typeParam=${currentType != null ? '&type=' + #uris.escapeQueryParam(currentType) : ''},
+      genreParam=${currentGenre != null ? '&genre=' + #uris.escapeQueryParam(currentGenre) : ''}"
+  >
+    <!-- 筛选：类型 / 状态 / 种类，均通过查询串驱动服务端重新取数 -->
+    <section class="douban-filter" th:if="${not #lists.isEmpty(types)}" aria-label="豆瓣筛选">
+      <div class="douban-filter__row">
+        <span class="douban-filter__label">类型 <small>TYPE</small></span>
+        <nav class="douban-filter__items" aria-label="作品类型">
+          <a
+            class="douban-chip"
+            th:classappend="${currentType == null} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=' + currentStatus}}"
+            th:attr="aria-current=${currentType == null} ? 'page' : null"
+            >全部</a
+          >
+          <a
+            class="douban-chip"
+            th:each="type : ${types}"
+            th:classappend="${type.key == currentType} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=' + currentStatus + '&type=' + #uris.escapeQueryParam(type.key)}}"
+            th:attr="aria-current=${type.key == currentType} ? 'page' : null"
+          >
+            <span th:text="${type.name}">电影</span>
+            <em th:if="${type.doubanCount != null}" th:text="${type.doubanCount}">0</em>
+          </a>
+        </nav>
+      </div>
+
+      <div class="douban-filter__row">
+        <span class="douban-filter__label">状态 <small>STATUS</small></span>
+        <div class="douban-filter__items" role="group" aria-label="收藏状态">
+          <a
+            class="douban-chip"
+            th:classappend="${currentStatus == 'mark'} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=mark' + typeParam}}"
+            th:attr="aria-current=${currentStatus == 'mark'} ? 'page' : null"
+            >想看</a
+          >
+          <a
+            class="douban-chip"
+            th:classappend="${currentStatus == 'doing'} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=doing' + typeParam}}"
+            th:attr="aria-current=${currentStatus == 'doing'} ? 'page' : null"
+            >在看</a
+          >
+          <a
+            class="douban-chip"
+            th:classappend="${currentStatus == 'done'} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=done' + typeParam}}"
+            th:attr="aria-current=${currentStatus == 'done'} ? 'page' : null"
+            >看过</a
+          >
+        </div>
+      </div>
+
+      <div class="douban-filter__row" th:if="${not #lists.isEmpty(genres)}">
+        <span class="douban-filter__label">种类 <small>GENRE</small></span>
+        <div class="douban-filter__items" role="group" aria-label="作品种类">
+          <a
+            class="douban-chip"
+            th:classappend="${currentGenre == null} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=' + currentStatus + typeParam}}"
+            th:attr="aria-current=${currentGenre == null} ? 'page' : null"
+            >全部</a
+          >
+          <a
+            class="douban-chip"
+            th:each="genre : ${genres}"
+            th:classappend="${genre.name == currentGenre} ? 'is-active' : ''"
+            th:href="@{${'/douban?status=' + currentStatus + typeParam + '&genre=' + #uris.escapeQueryParam(genre.name)}}"
+            th:attr="aria-current=${genre.name == currentGenre} ? 'page' : null"
+          >
+            <span th:text="${genre.name}">科幻</span>
+            <em th:if="${genre.doubanCount != null}" th:text="${genre.doubanCount}">0</em>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="link-stats">
+      <span><b th:text="${douban.total}">0</b> 条记录</span>
+      <th:block th:if="${douban.totalPages > 1}">
+        <i></i>
+        <span th:text="|第 ${douban.page} / ${douban.totalPages} 页|">第 1 页</span>
+      </th:block>
+    </div>
+
+    <div id="pager-region">
+      <div class="douban-grid" th:if="${not #lists.isEmpty(douban.items)}">
+        <article
+          class="douban-card reveal"
+          th:each="item : ${douban.items}"
+          th:with="
+            typeName=${item.type == 'movie' ? '电影' : (item.type == 'book' ? '图书' : (item.type == 'music' ? '音乐' : (item.type == 'game' ? '游戏' : (item.type == 'drama' ? '舞台剧' : item.type))))},
+            statusName=${item.favesStatus == 'mark' ? '想看' : (item.favesStatus == 'doing' ? '在看' : null)},
+            showScore=${not #strings.isEmpty(item.score) and item.score != '0'},
+            showMine=${not #strings.isEmpty(item.favesScore)}"
+        >
+          <a
+            class="douban-card__link"
+            th:href="${item.link}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="douban-card__poster">
+              <img
+                class="douban-card__image"
+                th:if="${not #strings.isEmpty(item.poster)}"
+                th:src="${item.poster}"
+                th:alt="${item.name}"
+                width="300"
+                height="450"
+                loading="lazy"
+                decoding="async"
+                referrerpolicy="no-referrer"
+              />
+              <span
+                class="douban-card__noimg"
+                th:unless="${not #strings.isEmpty(item.poster)}"
+                th:text="${item.name}"
+                >暂无封面</span
+              >
+              <span class="douban-card__score" th:if="${showScore}" th:text="${item.score}"
+                >8.7</span
+              >
+              <span
+                class="douban-card__status"
+                th:if="${statusName != null}"
+                th:text="${statusName}"
+                >想看</span
+              >
+            </span>
+
+            <span class="douban-card__body">
+              <span class="douban-card__title" th:text="${item.name}" th:title="${item.name}"
+                >作品名称</span
+              >
+              <span class="douban-card__meta">
+                <span th:if="${not #strings.isEmpty(item.year)}" th:text="${item.year}">2024</span>
+                <span
+                  class="douban-card__dot"
+                  th:if="${not #strings.isEmpty(item.year)}"
+                  aria-hidden="true"
+                ></span>
+                <span th:text="${typeName}">电影</span>
+                <span class="douban-card__dot" th:if="${showMine}" aria-hidden="true"></span>
+                <span class="douban-card__mine" th:if="${showMine}">
+                  <span aria-hidden="true">★</span>
+                  <span th:text="${item.favesScore}">9</span>
+                </span>
+              </span>
+              <span
+                class="douban-card__remark"
+                th:if="${not #strings.isEmpty(item.favesRemark)}"
+                th:text="${item.favesRemark}"
+                th:title="${item.favesRemark}"
+                >我的短评</span
+              >
+            </span>
+          </a>
+        </article>
+      </div>
+
+      <div class="ff-empty" th:if="${#lists.isEmpty(douban.items)}">
+        <b>暂无记录</b>
+        <span
+          th:text="${currentGenre != null or currentType != null ? '当前筛选下还没有记录，换个类型或种类看看。' : '插件还没有同步到豆瓣数据，请先在后台完成同步。'}"
+        >
+          插件还没有同步到豆瓣数据，请先在后台完成同步。
+        </span>
+        <a
+          class="douban-empty__reset"
+          th:if="${currentGenre != null or currentType != null}"
+          th:href="@{/douban}"
+          >查看全部记录</a
+        >
+      </div>
+
+      <!-- 分页：页码为路径式，筛选条件通过查询串保留；首末页/相邻页沿用同一套窗口规则 -->
+      <nav
+        class="page-navigator"
+        th:if="${douban.totalPages > 1}"
+        th:with="
+          total=${douban.totalPages},
+          current=${douban.page},
+          windowStart=${douban.totalPages <= 5 ? 1 : (douban.page <= 3 ? 1 : (douban.page >= douban.totalPages - 2 ? douban.totalPages - 4 : douban.page - 1))},
+          windowEnd=${douban.totalPages <= 5 ? douban.totalPages : (douban.page <= 3 ? 5 : (douban.page >= douban.totalPages - 2 ? douban.totalPages : douban.page + 1))}"
+        aria-label="分页导航"
+      >
+        <ul class="pagination">
+          <li class="pager-step pager-edge" th:classappend="${current <= 1} ? 'disabled' : ''">
+            <a
+              th:if="${current > 1}"
+              th:href="@{${'/douban?status=' + currentStatus + typeParam + genreParam}}"
+              rel="first"
+              title="首页"
+              aria-label="首页"
+              >«</a
+            >
+            <span th:unless="${current > 1}" aria-hidden="true">«</span>
+          </li>
+          <li class="pager-step" th:classappend="${!douban.hasPrevious()} ? 'disabled' : ''">
+            <a
+              th:if="${douban.hasPrevious()}"
+              th:href="@{${douban.prevUrl}}"
+              rel="prev"
+              title="上一页"
+              aria-label="上一页"
+              >←</a
+            >
+            <span th:unless="${douban.hasPrevious()}" aria-hidden="true">←</span>
+          </li>
+
+          <li th:if="${windowStart > 1}">
+            <a
+              th:href="@{${'/douban?status=' + currentStatus + typeParam + genreParam}}"
+              th:title="'第 1 页'"
+              th:aria-label="'第 1 页'"
+              >1</a
+            >
+          </li>
+          <li class="ellipsis" th:if="${windowStart > 2}" aria-hidden="true">…</li>
+
+          <li
+            th:each="n : ${#numbers.sequence(windowStart, windowEnd)}"
+            th:classappend="${n == current} ? 'current' : ''"
+          >
+            <span th:if="${n == current}" th:text="${n}" aria-current="page"></span>
+            <a
+              th:unless="${n == current}"
+              th:href="@{${'/douban/page/' + n + '?status=' + currentStatus + typeParam + genreParam}}"
+              th:title="${'第 ' + n + ' 页'}"
+              th:aria-label="${'第 ' + n + ' 页'}"
+              th:text="${n}"
+            ></a>
+          </li>
+
+          <li class="ellipsis" th:if="${windowEnd < total - 1}" aria-hidden="true">…</li>
+          <li th:if="${windowEnd < total}">
+            <a
+              th:href="@{${'/douban/page/' + total + '?status=' + currentStatus + typeParam + genreParam}}"
+              th:title="${'第 ' + total + ' 页'}"
+              th:aria-label="${'第 ' + total + ' 页'}"
+              th:text="${total}"
+            ></a>
+          </li>
+
+          <li class="pager-step" th:classappend="${!douban.hasNext()} ? 'disabled' : ''">
+            <a
+              th:if="${douban.hasNext()}"
+              th:href="@{${douban.nextUrl}}"
+              rel="next"
+              title="下一页"
+              aria-label="下一页"
+              >→</a
+            >
+            <span th:unless="${douban.hasNext()}" aria-hidden="true">→</span>
+          </li>
+          <li class="pager-step pager-edge" th:classappend="${current >= total} ? 'disabled' : ''">
+            <a
+              th:if="${current < total}"
+              th:href="@{${'/douban/page/' + total + '?status=' + currentStatus + typeParam + genreParam}}"
+              rel="last"
+              title="末页"
+              aria-label="末页"
+              >»</a
+            >
+            <span th:unless="${current < total}" aria-hidden="true">»</span>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</include>

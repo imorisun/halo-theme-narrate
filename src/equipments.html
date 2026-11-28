@@ -1,0 +1,252 @@
+<!--
+  装备陈列页（plugin-equipment 的 /equipments 路由，模板名 equipments.html）
+
+  可用变量：
+    groups     — List<EquipmentGroupVo>，全部分组（含 status.equipmentCount 与 equipments）
+    equipments — UrlContextListResult<EquipmentVo>，当前分组的分页结果
+    title      — String，插件「基础设置」中的标题（默认「装备」）
+
+  路由参数：group（可选，对应分组 metadata.name），由服务端过滤列表并在
+  prevUrl / nextUrl 中自动保留；页码为路径式 /equipments/page/{page}。
+  插件未安装时该模板不会被渲染。
+-->
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${#strings.isEmpty(title) ? '装备' : title} · ${site.title}|">
+      装备 · Narrate
+    </title>
+  </template>
+
+  <section class="page-hero">
+    <span
+      class="page-hero__glyph"
+      aria-hidden="true"
+      th:text="${#strings.isEmpty(title) ? '装' : #strings.substring(title, 0, 1)}"
+      >装</span
+    >
+    <div class="container">
+      <div class="page-hero__kicker">EQUIPMENT · 装备</div>
+      <h1 class="page-hero__title" th:text="${#strings.isEmpty(title) ? '装备' : title}">装备</h1>
+      <p class="page-hero__sub">
+        日常在用的器物都记在这里：桌面上的输入设备、随身的相机与工具，以及那些经得起长期使用的选择。
+      </p>
+    </div>
+  </section>
+
+  <div
+    class="page-wrap container equip-page"
+    th:with="
+      currentGroup=${param.group != null and not #lists.isEmpty(param.group) and not #strings.isEmpty(param.group[0]) ? param.group[0] : null},
+      groupSuffix=${currentGroup != null ? '?group=' + #uris.escapeQueryParam(currentGroup) : ''}"
+  >
+    <!-- 分组筛选：链接由服务端生成，当前分组按查询串标记 -->
+    <nav class="equip-filter" th:if="${not #lists.isEmpty(groups)}" aria-label="装备分组">
+      <a
+        class="equip-filter__item"
+        th:classappend="${currentGroup == null} ? 'is-active' : ''"
+        th:attr="aria-current=${currentGroup == null} ? 'page' : null"
+        th:href="@{/equipments}"
+        >全部</a
+      >
+      <a
+        class="equip-filter__item"
+        th:each="equipmentGroup : ${groups}"
+        th:classappend="${equipmentGroup.metadata.name == currentGroup} ? 'is-active' : ''"
+        th:attr="aria-current=${equipmentGroup.metadata.name == currentGroup} ? 'page' : null"
+        th:href="@{/equipments(group=${equipmentGroup.metadata.name})}"
+      >
+        <span th:text="${equipmentGroup.spec.displayName}">分组</span>
+        <em
+          th:if="${equipmentGroup.status?.equipmentCount != null}"
+          th:text="${equipmentGroup.status.equipmentCount}"
+          >0</em
+        >
+      </a>
+    </nav>
+
+    <div class="link-stats">
+      <span><b th:text="${equipments.total}">0</b> 件装备</span>
+      <th:block th:if="${equipments.totalPages > 1}">
+        <i></i>
+        <span th:text="|第 ${equipments.page} / ${equipments.totalPages} 页|">第 1 页</span>
+      </th:block>
+    </div>
+
+    <div class="equip-grid" id="pager-region" th:if="${not #lists.isEmpty(equipments.items)}">
+      <article class="equip-card reveal" th:each="equipment : ${equipments.items}">
+        <!-- 无外链时不输出 href（与菜单里的失效项同一写法），卡片保持只读 -->
+        <a
+          class="equip-card__media"
+          th:href="${not #strings.isEmpty(equipment.spec.url) ? equipment.spec.url : null}"
+          target="_blank"
+          rel="noopener noreferrer"
+          th:attr="aria-label=${not #strings.isEmpty(equipment.spec.url)} ? '访问' + equipment.spec.displayName : null"
+        >
+          <img
+            class="equip-card__image"
+            th:if="${not #strings.isEmpty(equipment.spec.cover)}"
+            th:src="${equipment.spec.cover}"
+            th:alt="${equipment.spec.displayName}"
+            width="800"
+            height="600"
+            loading="lazy"
+            decoding="async"
+          />
+          <span
+            class="equip-card__noimg"
+            th:unless="${not #strings.isEmpty(equipment.spec.cover)}"
+            aria-hidden="true"
+            th:text="${#strings.substring(equipment.spec.displayName, 0, 1)}"
+            >装</span
+          >
+          <span
+            class="equip-card__arrow"
+            th:if="${not #strings.isEmpty(equipment.spec.url)}"
+            aria-hidden="true"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M7 17 17 7M8 7h9v9" />
+            </svg>
+          </span>
+        </a>
+
+        <div class="equip-card__body">
+          <p
+            class="equip-card__spec"
+            th:if="${not #strings.isEmpty(equipment.spec.specification)}"
+            th:text="${equipment.spec.specification}"
+          >
+            规格
+          </p>
+          <h2
+            class="equip-card__title"
+            th:text="${equipment.spec.displayName}"
+            th:title="${equipment.spec.displayName}"
+          >
+            装备名称
+          </h2>
+          <p
+            class="equip-card__desc"
+            th:if="${not #strings.isEmpty(equipment.spec.description)}"
+            th:text="${equipment.spec.description}"
+          >
+            装备描述
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <div class="ff-empty" th:if="${#lists.isEmpty(equipments.items)}">
+      <b>暂无装备</b>
+      <span
+        th:text="${currentGroup != null ? '当前分组下还没有装备，换个分组看看。' : '在 Halo Console 的「装备管理」中添加装备后，这里会自动展示。'}"
+      >
+        在 Halo Console 的「装备管理」中添加装备后，这里会自动展示。
+      </span>
+      <a class="equip-empty__reset" th:if="${currentGroup != null}" th:href="@{/equipments}"
+        >查看全部装备</a
+      >
+    </div>
+
+    <!-- 分页：页码为路径式，分组条件通过查询串保留；沿用主题的窗口折叠规则 -->
+    <nav
+      class="page-navigator"
+      th:if="${equipments.totalPages > 1}"
+      th:with="
+        total=${equipments.totalPages},
+        current=${equipments.page},
+        windowStart=${equipments.totalPages <= 5 ? 1 : (equipments.page <= 3 ? 1 : (equipments.page >= equipments.totalPages - 2 ? equipments.totalPages - 4 : equipments.page - 1))},
+        windowEnd=${equipments.totalPages <= 5 ? equipments.totalPages : (equipments.page <= 3 ? 5 : (equipments.page >= equipments.totalPages - 2 ? equipments.totalPages : equipments.page + 1))}"
+      aria-label="分页导航"
+    >
+      <ul class="pagination">
+        <li class="pager-step pager-edge" th:classappend="${current <= 1} ? 'disabled' : ''">
+          <a
+            th:if="${current > 1}"
+            th:href="@{${'/equipments' + groupSuffix}}"
+            rel="first"
+            title="首页"
+            aria-label="首页"
+            >«</a
+          >
+          <span th:unless="${current > 1}" aria-hidden="true">«</span>
+        </li>
+        <li class="pager-step" th:classappend="${!equipments.hasPrevious()} ? 'disabled' : ''">
+          <a
+            th:if="${equipments.hasPrevious()}"
+            th:href="@{${equipments.prevUrl}}"
+            rel="prev"
+            title="上一页"
+            aria-label="上一页"
+            >←</a
+          >
+          <span th:unless="${equipments.hasPrevious()}" aria-hidden="true">←</span>
+        </li>
+
+        <li th:if="${windowStart > 1}">
+          <a
+            th:href="@{${'/equipments' + groupSuffix}}"
+            th:title="'第 1 页'"
+            th:aria-label="'第 1 页'"
+            >1</a
+          >
+        </li>
+        <li class="ellipsis" th:if="${windowStart > 2}" aria-hidden="true">…</li>
+
+        <li
+          th:each="n : ${#numbers.sequence(windowStart, windowEnd)}"
+          th:classappend="${n == current} ? 'current' : ''"
+        >
+          <span th:if="${n == current}" th:text="${n}" aria-current="page"></span>
+          <a
+            th:unless="${n == current}"
+            th:href="@{${'/equipments/page/' + n + groupSuffix}}"
+            th:title="${'第 ' + n + ' 页'}"
+            th:aria-label="${'第 ' + n + ' 页'}"
+            th:text="${n}"
+          ></a>
+        </li>
+
+        <li class="ellipsis" th:if="${windowEnd < total - 1}" aria-hidden="true">…</li>
+        <li th:if="${windowEnd < total}">
+          <a
+            th:href="@{${'/equipments/page/' + total + groupSuffix}}"
+            th:title="${'第 ' + total + ' 页'}"
+            th:aria-label="${'第 ' + total + ' 页'}"
+            th:text="${total}"
+          ></a>
+        </li>
+
+        <li class="pager-step" th:classappend="${!equipments.hasNext()} ? 'disabled' : ''">
+          <a
+            th:if="${equipments.hasNext()}"
+            th:href="@{${equipments.nextUrl}}"
+            rel="next"
+            title="下一页"
+            aria-label="下一页"
+            >→</a
+          >
+          <span th:unless="${equipments.hasNext()}" aria-hidden="true">→</span>
+        </li>
+        <li class="pager-step pager-edge" th:classappend="${current >= total} ? 'disabled' : ''">
+          <a
+            th:if="${current < total}"
+            th:href="@{${'/equipments/page/' + total + groupSuffix}}"
+            rel="last"
+            title="末页"
+            aria-label="末页"
+            >»</a
+          >
+          <span th:unless="${current < total}" aria-hidden="true">»</span>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</include>
