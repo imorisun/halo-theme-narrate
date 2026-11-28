@@ -91,6 +91,13 @@ function shareHref(name: string): string {
   return `${window.location.origin}/hitokoto?sentence=${encodeURIComponent(name)}`;
 }
 
+/** 来源字段可能已自带书名号（如《雪中悍刀行》），统一避免重复包裹 */
+function formatSource(source: string | undefined): string {
+  const value = (source ?? "").trim();
+  if (!value) return "";
+  return value.startsWith("《") && value.endsWith("》") ? value : `《${value}》`;
+}
+
 function buildLikeButton(sentence: ApiSentence, className: string): HTMLAnchorElement {
   const name = sentence.name ?? "";
   const link = document.createElement("a");
@@ -146,7 +153,7 @@ function buildStage(sentence: ApiSentence, shareView: boolean): HTMLElement {
   author.textContent = (sentence.author ?? "").trim() || "佚名";
   meta.appendChild(author);
 
-  const source = (sentence.source ?? "").trim();
+  const source = formatSource(sentence.source);
   if (source) {
     const sep = document.createElement("span");
     sep.className = "hito-stage__sep";
@@ -157,7 +164,7 @@ function buildStage(sentence: ApiSentence, shareView: boolean): HTMLElement {
     const sourceLink = document.createElement("a");
     sourceLink.className = "hito-stage__src";
     sourceLink.dataset.hitoSource = "";
-    sourceLink.textContent = `《${source}》`;
+    sourceLink.textContent = source;
     if (sentence.jumpUrl) {
       sourceLink.href = sentence.jumpUrl;
       sourceLink.target = "_blank";
@@ -219,10 +226,10 @@ function buildCard(sentence: ApiSentence): HTMLElement {
   author.textContent = (sentence.author ?? "").trim() || "佚名";
   meta.appendChild(author);
 
-  const source = (sentence.source ?? "").trim();
+  const source = formatSource(sentence.source);
   if (source) {
     const sourceText = document.createElement("span");
-    sourceText.textContent = `《${source}》`;
+    sourceText.textContent = source;
     meta.appendChild(sourceText);
   }
   foot.appendChild(meta);

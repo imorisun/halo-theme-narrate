@@ -84,16 +84,6 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
-.hito-stage::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 42px;
-  width: 46px;
-  height: 2px;
-  background: var(--accent);
-  opacity: 0.55;
-}
 .hito-stage__mark {
   position: absolute;
   top: 2px;
@@ -205,11 +195,12 @@
 .hito-act--like.is-liked svg {
   fill: currentColor;
 }
-/* 分享直达角标 */
+/* 分享直达标记：作为引言上方的引导标签，避免角标与长句、按钮相互挤压 */
 .hito-stage__flag {
-  position: absolute;
-  top: 20px;
-  right: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
   padding: 3px 10px;
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -217,6 +208,28 @@
   color: var(--accent);
   background: var(--accent-soft);
   border-radius: 999px;
+}
+.hito-stage__flag::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 分享直达：仅为被分享的句子保留一块轻染的强调底，突出「这一句」 */
+.hito-page[data-share-view="true"] .hito-stage {
+  padding-top: 32px;
+  background: linear-gradient(180deg, var(--accent-soft), transparent 58%), var(--surface);
+  border-color: var(--accent-line);
+}
+.hito-page[data-share-view="true"] .hito-stage__quote {
+  font-size: clamp(22px, 2.9vw, 30px);
+}
+.hito-page[data-share-view="true"] .hito-stage__mark {
+  left: auto;
+  right: 34px;
+  opacity: 0.14;
 }
 
 /* 句子卡片 */
@@ -325,9 +338,6 @@
   .hito-stage {
     padding: 30px 22px 22px;
   }
-  .hito-stage::before {
-    left: 22px;
-  }
   .hito-stage__mark {
     left: 12px;
     font-size: 82px;
@@ -337,8 +347,7 @@
     line-height: 1.8;
   }
   .hito-stage__flag {
-    top: 16px;
-    right: 16px;
+    margin-bottom: 12px;
   }
   .hito-stage__actions {
     margin-top: 20px;

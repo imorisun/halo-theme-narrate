@@ -96,15 +96,18 @@
         th:text="${#strings.isEmpty(s.author) ? '佚名' : s.author}"
         >佚名</span
       >
-      <!-- 来源与作者以「作者 · 《来源》」排版；无来源时只保留作者 -->
-      <th:block th:if="${not #strings.isEmpty(s.source)}">
+      <!-- 来源与作者以「作者 · 《来源》」排版；来源可能自带书名号，避免重复包裹 -->
+      <th:block
+        th:if="${s.source != null and not #strings.isEmpty(#strings.trim(s.source))}"
+        th:with="book=${#strings.trim(s.source)}"
+      >
         <span class="hito-stage__sep" aria-hidden="true">·</span>
         <a
           class="hito-stage__src"
           data-hito-source
           th:classappend="${s.jumpUrl == null} ? 'is-plain' : ''"
           th:attr="href=${s.jumpUrl},target=${s.jumpUrl != null ? '_blank' : null},rel=${s.jumpUrl != null ? 'noopener noreferrer' : null}"
-          th:text="|《${s.source}》|"
+          th:text="${#strings.startsWith(book, '《') and #strings.endsWith(book, '》') ? book : '《' + book + '》'}"
           >《来源》</a
         >
       </th:block>
@@ -177,7 +180,12 @@
     <div class="hito-card__foot">
       <span class="hito-card__meta">
         <span th:text="${#strings.isEmpty(s.author) ? '佚名' : s.author}">佚名</span>
-        <span th:if="${not #strings.isEmpty(s.source)}" th:text="|《${s.source}》|">《来源》</span>
+        <span
+          th:if="${s.source != null and not #strings.isEmpty(#strings.trim(s.source))}"
+          th:with="book=${#strings.trim(s.source)}"
+          th:text="${#strings.startsWith(book, '《') and #strings.endsWith(book, '》') ? book : '《' + book + '》'}"
+          >《来源》</span
+        >
       </span>
       <a
         class="hito-card__like"
